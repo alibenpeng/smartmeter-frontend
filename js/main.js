@@ -157,3 +157,4 @@ var meters = {
 
     });
 } (jQuery));
+// vim: expandtab sw=4 ts=4
