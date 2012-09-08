@@ -1,60 +1,64 @@
+var meters = {
+    meter1: {
+        name: 'Stromzähler 1',
+        loaded: false,
+        src: 'data/data_meter1_24h.csv',
+        data: []
+    },
+    meter2: {
+        name: 'Stromzähler 2',
+        loaded: false,
+        src: 'data/data_meter2_24h.csv',
+        data: []
+    },
+    meter3: {
+        name: 'Stromzähler 3',
+        loaded: false,
+        src: 'data/data_meter3_24h.csv',
+        data: []
+    },
+    lost: {
+        name: 'Packet loss',
+        loaded: false,
+        src: 'data/data_lost_24h.csv',
+        data: []
+    },
+    total: {
+        name: 'Gesamt',
+        loaded: false,
+        src: 'data/data_total_24h.csv',
+        data: []
+    }
+};
+
+
 (function($) {
-    var csv = {
-        readData: function(data) {
-            function readRecord(line) {
-                var items = line.split(','), ret={};
+    function readCSV(data) {
+        function readRecord(line) {
+            var items, timestamp, value;
 
-                return [
-                    items[0].replace(":", "") * 1000, // timestamp
-                    parseFloat(items[1]) // value
-                ];
-            }
+            items = line.split(',');
 
-            // Split the lines
-            var lines = data.split('\n'), records=[];
+            timestamp=parseInt(items[0]) * 1000 // highcharts wants ms;
+            value=parseFloat(items[1]);
 
-            lines.shift(); // remove first line with headings
+            if(isNaN(timestamp) || isNaN(value)) { throw 'NotANumber'; }
 
-            $.each(lines, function(lineNo, line) {
+            return [ timestamp, value ];
+        }
+
+        var lines = data.split('\n'), records=[];
+
+        lines.shift(); // remove first line with headings
+        $.each(lines, function(lineNo, line) {
+            try{
                 records.push(readRecord(line));
-            });
+            } catch(ex) { /* huh? */ }
+        });
 
-            return records;
-        }
+        return records;
     };
 
-    var meters = {
-        meter1: {
-            name: 'Stromzähler 1',
-            loaded: false,
-            src: 'data/data_meter1_24h.csv',
-            data: []
-        },
-        meter2: {
-            name: 'Stromzähler 2',
-            loaded: false,
-            src: 'data/data_meter2_24h.csv',
-            data: []
-        },
-        meter3: {
-            name: 'Stromzähler 3',
-            loaded: false,
-            src: 'data/data_meter3_24h.csv',
-            data: []
-        },
-        lost: {
-            name: 'Packet loss',
-            loaded: false,
-            src: 'data/data_lost_24h.csv',
-            data: []
-        },
-        total: {
-            name: 'Gesamt',
-            loaded: false,
-            src: 'data/data_total_24h.csv',
-            data: []
-        }
-    };
     // Split the lines
 
     $(function () {
@@ -65,9 +69,11 @@
 
         $.each(meters, function(id, meter) {
             $.get(meter.src, function (csvData) {
-                var data = csv.readData(csvData);
+                var data = readCSV(csvData);
 
+                meter.loaded = true;
                 meter.data = data;
+
                 seriesOptions.push({
                     name:meter.name,
                     data:data
@@ -115,9 +121,7 @@
 
                 yAxis:{
                     labels:{
-                        formatter:function () {
-                            return (this.value > 0 ? '+' : '') + this.value + '%';
-                        }
+                        formatter:function () { return (this.value > 0 ? '+' : '') + this.value + '%'; }
                     },
                     plotLines:[
                         {
@@ -128,12 +132,6 @@
                     ]
                 },
 
-                plotOptions:{
-                    series:{
-                        compare:'percent'
-                    }
-                },
-
                 tooltip:{
                     pointFormat:'<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
                     valueDecimals:2
@@ -141,6 +139,44 @@
 
                 series:seriesOptions
             });
+//            var chart = new Highcharts.StockChart({
+//                chart:{
+//                    renderTo:'container'
+//                },
+//
+//                rangeSelector:{
+//                    selected:4
+//                },
+//
+//                yAxis:{
+//                    labels:{
+//                        formatter:function () {
+//                            return (this.value > 0 ? '+' : '') + this.value + '%';
+//                        }
+//                    },
+//                    plotLines:[
+//                        {
+//                            value:0,
+//                            width:2,
+//                            color:'silver'
+//                        }
+//                    ]
+//                },
+//
+//                plotOptions:{
+//                    series:{
+//                        compare:'percent'
+//                    }
+//                },
+//
+//                tooltip:{
+//                    pointFormat:'<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
+//                    valueDecimals:2
+//                },
+//
+//                series:seriesOptions
+//            });
+
         }
 
     });
