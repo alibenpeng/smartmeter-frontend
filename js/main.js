@@ -18,7 +18,7 @@ var meters = {
         data: []
     },
     lost: {
-        name: 'Loss',
+        name: 'Lost',
         loaded: false,
         src: 'data/data_lost_24h.csv',
         data: []
