@@ -109,7 +109,35 @@ var meters = {
             var chart = new Highcharts.StockChart({
                 chart:{
                     renderTo:'container',
-                    type:'column'
+                    type:'column',
+                    zoomType: 'x',
+                    events: {
+                        'redraw' : function(ev) {
+                            var min=chart.xAxis[0].min,  max = chart.xAxis[0].max;
+
+                            console.log( 'showing range from ',
+                                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', min),
+                                ' to ',
+                                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', max)
+                            );
+
+                            console.log('Total AVG', getSeriesAverage(meters.total.data, min, max));
+
+                            function getSeriesAverage(seriesData, from, to) {
+                                var data = seriesData, sum=0, nSamples=0, rec;
+
+                                for(var i=0,n=data.length; i<n; i++) {
+                                    rec = data[i];
+
+                                    if(rec[0] < from || rec[0] > to) { continue; }
+                                    sum += rec[1];
+                                    nSamples++;
+                                }
+
+                                return sum/nSamples;
+                            }
+                        }
+                    }
                 },
 
                 rangeSelector:{
@@ -131,9 +159,9 @@ var meters = {
                     pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y} W</b><br>',
                     yDecimals: 0
                 },
+
                 plotOptions: {
-                    column: {
-                        stacking: 'normal'},
+                    column: {stacking: 'normal'},
                     areaspline: {
                         pointStart: 1940,
                         marker: {
@@ -168,3 +196,4 @@ var meters = {
 
     });
 } (jQuery));
+// vim: expandtab sw=4 ts=4
