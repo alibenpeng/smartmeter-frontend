@@ -100,7 +100,8 @@ var meters = {
 
             var chart = new Highcharts.StockChart({
                 chart:{
-                    renderTo:'container'
+                    renderTo:'container',
+                    type:'column'
                 },
 
                 rangeSelector:{
@@ -121,6 +122,36 @@ var meters = {
                 tooltip:{
                     pointFormat:'<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
                     valueDecimals:2
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal'},
+                    areaspline: {
+                        pointStart: 1940,
+                        marker: {
+                            enabled: false,
+                            symbol: 'circle',
+                            radius: 2,
+                            states: {
+                                hover: {
+                                    enabled: true
+                                }
+                            }
+                        }
+                    },
+                    spline: {
+                        pointStart: 1940,
+                        marker: {
+                            enabled: false,
+                            symbol: 'circle',
+                            radius: 2,
+                            states: {
+                                hover: {
+                                    enabled: true
+                                }
+                            }
+                        }
+                    }
                 },
 
                 series:seriesOptions
