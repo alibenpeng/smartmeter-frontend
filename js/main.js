@@ -98,7 +98,18 @@ var meters = {
             var chart = new Highcharts.StockChart({
                 chart:{
                     renderTo:'container',
-                    type:'column'
+                    type:'column',
+                    zoomType: 'x',
+                    events: {
+                        'selection' : function(ev) {
+                            var min=ev.xAxis[0].min,  max = ev.xAxis[0].max;
+
+                            console.log( 'showing range from ',
+                                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', ev.xAxis[0].min),
+                                ' to ',
+                                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', ev.xAxis[0].max)
+                            );                        }
+                    }
                 },
 
                 rangeSelector:{
