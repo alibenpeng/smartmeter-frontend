@@ -1,30 +1,30 @@
 var meters = {
     meter1: {
-        name: 'Stromzähler 1',
+        name: 'Meter 1',
         loaded: false,
         src: 'data/data_meter1_24h.csv',
         data: []
     },
     meter2: {
-        name: 'Stromzähler 2',
+        name: 'Meter 2',
         loaded: false,
         src: 'data/data_meter2_24h.csv',
         data: []
     },
     meter3: {
-        name: 'Stromzähler 3',
+        name: 'Meter 3',
         loaded: false,
         src: 'data/data_meter3_24h.csv',
         data: []
     },
     lost: {
-        name: 'Packet loss',
+        name: 'Loss',
         loaded: false,
         src: 'data/data_lost_24h.csv',
         data: []
     },
     total: {
-        name: 'Gesamt',
+        name: 'Total',
         loaded: false,
         src: 'data/data_total_24h.csv',
         data: []
@@ -89,27 +89,15 @@ var meters = {
             });
         });
 
-//        $.each(names, function (i, name) {
-//            $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=' + name.toLowerCase() + '-c.json&callback=?', function (data) {
-//
-//                seriesOptions[i] = {
-//                    name:name,
-//                    data:data
-//                };
-//
-//                // As we're loading the data asynchronously, we don't know what order it will arrive. So
-//                // we keep a counter and create the chart when all the data is loaded.
-//                seriesCounter++;
-//
-//                if (seriesCounter == names.length) {
-//                    createChart();
-//                }
-//            });
-//        });
-
-
         // create the chart when all data is loaded
         function createChart() {
+            Highcharts.setOptions({
+                global: {
+                    useUTC: false
+                }
+            });
+
+
             var chart = new Highcharts.StockChart({
                 chart:{
                     renderTo:'container'
@@ -121,15 +109,13 @@ var meters = {
 
                 yAxis:{
                     labels:{
-                        formatter:function () { return (this.value > 0 ? '+' : '') + this.value + '%'; }
+                        formatter: function () { return this.value + ' W'; }
                     },
-                    plotLines:[
-                        {
-                            value:0,
-                            width:2,
-                            color:'silver'
-                        }
-                    ]
+                    plotLines:[{
+                        value:0,
+                        width:2,
+                        color:'silver'
+                    }]
                 },
 
                 tooltip:{
@@ -139,44 +125,6 @@ var meters = {
 
                 series:seriesOptions
             });
-//            var chart = new Highcharts.StockChart({
-//                chart:{
-//                    renderTo:'container'
-//                },
-//
-//                rangeSelector:{
-//                    selected:4
-//                },
-//
-//                yAxis:{
-//                    labels:{
-//                        formatter:function () {
-//                            return (this.value > 0 ? '+' : '') + this.value + '%';
-//                        }
-//                    },
-//                    plotLines:[
-//                        {
-//                            value:0,
-//                            width:2,
-//                            color:'silver'
-//                        }
-//                    ]
-//                },
-//
-//                plotOptions:{
-//                    series:{
-//                        compare:'percent'
-//                    }
-//                },
-//
-//                tooltip:{
-//                    pointFormat:'<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
-//                    valueDecimals:2
-//                },
-//
-//                series:seriesOptions
-//            });
-
         }
 
     });
