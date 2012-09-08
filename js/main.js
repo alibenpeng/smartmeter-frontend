@@ -117,8 +117,8 @@ var meters = {
                 },
 
                 tooltip:{
-                    pointFormat:'<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
-                    valueDecimals:2
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y} W</b><br>',
+                    yDecimals: 0
                 },
                 plotOptions: {
                     column: {
