@@ -3,30 +3,41 @@ var meters = {
         name: 'Meter 1',
         loaded: false,
         src: 'data/data_meter1_24h.csv',
+        zIndex: 2,
+        color: "#55ff55",
         data: []
     },
     meter2: {
         name: 'Meter 2',
         loaded: false,
         src: 'data/data_meter2_24h.csv',
+        zIndex: 2,
+        color: "#eeee44",
         data: []
     },
     meter3: {
         name: 'Meter 3',
         loaded: false,
         src: 'data/data_meter3_24h.csv',
+        zIndex: 2,
+        color: "#5555ff",
         data: []
     },
     lost: {
         name: 'Lost',
         loaded: false,
         src: 'data/data_lost_24h.csv',
+        zIndex: 5,
+        color: "#ff5555",
         data: []
     },
     total: {
         name: 'Total',
         loaded: false,
         src: 'data/data_total_24h.csv',
+        type: "areaspline",
+        zIndex: 1,
+        color: "#dddddd",
         data: []
     }
 };
