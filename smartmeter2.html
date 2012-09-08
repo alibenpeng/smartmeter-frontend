@@ -1,0 +1,547 @@
+<html><head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script src="/js/highcharts.js" type="text/javascript"></script>
+<script>
+$(function () {
+    
+    
+    var masterChart,
+        detailChart;
+
+
+$.get('data.csv', function(data) {
+	// Split the lines
+	var lines = data.split('\n');
+	var names;
+	var timestamp;
+	var meters = [[], [], [], []];
+
+	$.each(lines, function(lineNo, line) {
+		var items = line.split(',');
+
+		// header line contains meter names
+		if (lineNo == 0) {
+			names = line.split(',');
+		} else {
+			$.each(items, function(itemNo, item) {
+				if (itemNo == 0) {
+					timestamp = item.replace(":","") * 1000;
+				} else {
+					//alert("Name: " + names[(itemNo)]);
+					meters[(itemNo - 1)].push( [ timestamp, parseFloat(item) ] );
+				}
+			});
+
+
+		}
+	});
+});
+
+    
+    $(document).ready(function() {
+    
+        // create the master chart
+        function createMaster() {
+            masterChart = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'master-container',
+                    reflow: false,
+                    borderWidth: 0,
+                    backgroundColor: null,
+                    marginLeft: 50,
+                    marginRight: 20,
+                    zoomType: 'x',
+                    events: {
+    
+                        // listen to the selection event on the master chart to update the
+                        // extremes of the detail chart
+                        selection: function(event) {
+                            var extremesObject = event.xAxis[0],
+                                min = extremesObject.min,
+                                max = extremesObject.max,
+                                detailData = [],
+                                xAxis = this.xAxis[0];
+    
+                            // reverse engineer the last part of the data
+                            jQuery.each(this.series[0].data, function(i, point) {
+                                if (point.x > min && point.x < max) {
+                                    detailData.push({
+                                        x: point.x,
+                                        y: point.y
+                                    });
+                                }
+                            });
+    
+                            // move the plot bands to reflect the new detail span
+                            xAxis.removePlotBand('mask-before');
+                            xAxis.addPlotBand({
+                                id: 'mask-before',
+                                from: Date.UTC(2006, 0, 1),
+                                to: min,
+                                color: 'rgba(0, 0, 0, 0.2)'
+                            });
+    
+                            xAxis.removePlotBand('mask-after');
+                            xAxis.addPlotBand({
+                                id: 'mask-after',
+                                from: max,
+                                to: Date.UTC(2008, 11, 31),
+                                color: 'rgba(0, 0, 0, 0.2)'
+                            });
+    
+    
+                            detailChart.series[0].setData(detailData);
+    
+                            return false;
+                        }
+                    }
+                },
+                title: {
+                    text: null
+                },
+                xAxis: {
+                    type: 'datetime',
+                    showLastTickLabel: true,
+                    maxZoom: 14 * 24 * 3600000, // fourteen days
+                    plotBands: [{
+                        id: 'mask-before',
+                        from: Date.UTC(2006, 0, 1),
+                        to: Date.UTC(2008, 7, 1),
+                        color: 'rgba(0, 0, 0, 0.2)'
+                    }],
+                    title: {
+                        text: null
+                    }
+                },
+                yAxis: {
+                    gridLineWidth: 0,
+                    labels: {
+                        enabled: false
+                    },
+                    title: {
+                        text: null
+                    },
+                    min: 0.6,
+                    showFirstLabel: false
+                },
+                tooltip: {
+                    formatter: function() {
+                        return false;
+                    }
+                },
+                legend: {
+                    enabled: false
+                },
+                credits: {
+                    enabled: false
+                },
+                plotOptions: {
+                    series: {
+                        fillColor: {
+                            linearGradient: [0, 0, 0, 70],
+                            stops: [
+                                [0, '#4572A7'],
+                                [1, 'rgba(0,0,0,0)']
+                            ]
+                        },
+                        lineWidth: 1,
+                        marker: {
+                            enabled: false
+                        },
+                        shadow: false,
+                        states: {
+                            hover: {
+                                lineWidth: 1
+                            }
+                        },
+                        enableMouseTracking: false
+                    }
+                },
+    
+                series: [
+ 				{
+                    type: 'area',
+                    name: 'Power Consumption',
+                    pointInterval: 24 * 3600 * 1000,
+                    pointStart: Date.UTC(2012, 0, 01),
+                    data: meters[2]
+                }],
+    
+                exporting: {
+                    enabled: false
+                }
+    
+            }, function(masterChart) {
+                createDetail(masterChart)
+            });
+        }
+    
+        // create the detail chart
+        function createDetail(masterChart) {
+    
+            // prepare the detail chart
+            var detailData = [],
+                detailStart = Date.UTC(2008, 7, 1);
+    
+            jQuery.each(masterChart.series[0].data, function(i, point) {
+                if (point.x >= detailStart) {
+                    detailData.push(point.y);
+                }
+            });
+    
+            // create a detail chart referenced by a global variable
+            detailChart = new Highcharts.Chart({
+                chart: {
+                    marginBottom: 120,
+                    renderTo: 'detail-container',
+                    reflow: false,
+                    marginLeft: 50,
+                    marginRight: 20,
+                    style: {
+                        position: 'absolute'
+                    }
+                },
+                credits: {
+                    enabled: false
+                },
+                title: {
+                    text: 'Historical USD to EUR Exchange Rate'
+                },
+                subtitle: {
+                    text: 'Select an area by dragging across the lower chart'
+                },
+                xAxis: {
+                    type: 'datetime'
+                },
+                yAxis: {
+                    title: {
+                        text: null
+                    },
+                    maxZoom: 0.1
+                },
+                tooltip: {
+                    formatter: function() {
+                        var point = this.points[0];
+                        return '<b>'+ point.series.name +'</b><br/>'+
+                            Highcharts.dateFormat('%A %B %e %Y', this.x) + ':<br/>'+
+                            '1 USD = '+ Highcharts.numberFormat(point.y, 2) +' EUR';
+                    },
+                    shared: true
+                },
+                legend: {
+                    enabled: false
+                },
+                plotOptions: {
+                    series: {
+                        marker: {
+                            enabled: false,
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    radius: 3
+                                }
+                            }
+                        }
+                    }
+                },
+                series: [{
+                    name: 'USD to EUR',
+                    pointStart: detailStart,
+                    pointInterval: 24 * 3600 * 1000,
+                    data: meters[2]
+                }],
+    
+                exporting: {
+                    enabled: false
+                }
+    
+            });
+        }
+    
+        // make the container smaller and add a second container for the master chart
+        var $container = $('#container')
+            .css('position', 'relative');
+    
+        var $detailContainer = $('<div id="detail-container">')
+            .appendTo($container);
+    
+        var $masterContainer = $('<div id="master-container">')
+            .css({ position: 'absolute', top: 300, height: 80, width: '100%' })
+            .appendTo($container);
+    
+        // create master and in its callback, create the detail chart
+        createMaster();
+    });
+    
+});
+
+/**
+ * Gray theme for Highcharts JS
+ * @author Torstein Hønsi
+ */
+
+Highcharts.theme = {
+   colors: ["#DDDF0D", "#7798BF", "#55BF3B", "#DF5353", "#aaeeee", "#ff0066", "#eeaaee",
+      "#55BF3B", "#DF5353", "#7798BF", "#aaeeee"],
+   chart: {
+      backgroundColor: {
+         linearGradient: [0, 0, 0, 400],
+         stops: [
+            [0, 'rgb(96, 96, 96)'],
+            [1, 'rgb(16, 16, 16)']
+         ]
+      },
+      borderWidth: 0,
+      borderRadius: 15,
+      plotBackgroundColor: null,
+      plotShadow: false,
+      plotBorderWidth: 0
+   },
+   title: {
+      style: {
+         color: '#FFF',
+         font: '16px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+      }
+   },
+   subtitle: {
+      style: {
+         color: '#DDD',
+         font: '12px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+      }
+   },
+   xAxis: {
+      gridLineWidth: 0,
+      lineColor: '#999',
+      tickColor: '#999',
+      labels: {
+         style: {
+            color: '#999',
+            fontWeight: 'bold'
+         }
+      },
+      title: {
+         style: {
+            color: '#AAA',
+            font: 'bold 12px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+         }
+      }
+   },
+   yAxis: {
+      alternateGridColor: null,
+      minorTickInterval: null,
+      gridLineColor: 'rgba(255, 255, 255, .1)',
+      lineWidth: 0,
+      tickWidth: 0,
+      labels: {
+         style: {
+            color: '#999',
+            fontWeight: 'bold'
+         }
+      },
+      title: {
+         style: {
+            color: '#AAA',
+            font: 'bold 12px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+         }
+      }
+   },
+   legend: {
+      itemStyle: {
+         color: '#CCC'
+      },
+      itemHoverStyle: {
+         color: '#FFF'
+      },
+      itemHiddenStyle: {
+         color: '#333'
+      }
+   },
+   labels: {
+      style: {
+         color: '#CCC'
+      }
+   },
+   tooltip: {
+      backgroundColor: {
+         linearGradient: [0, 0, 0, 50],
+         stops: [
+            [0, 'rgba(96, 96, 96, .8)'],
+            [1, 'rgba(16, 16, 16, .8)']
+         ]
+      },
+      borderWidth: 0,
+      style: {
+         color: '#FFF'
+      }
+   },
+
+
+   plotOptions: {
+      line: {
+         dataLabels: {
+            color: '#CCC'
+         },
+         marker: {
+            lineColor: '#333'
+         }
+      },
+      spline: {
+         marker: {
+            lineColor: '#333'
+         }
+      },
+      scatter: {
+         marker: {
+            lineColor: '#333'
+         }
+      },
+      candlestick: {
+         lineColor: 'white'
+      }
+   },
+
+   toolbar: {
+      itemStyle: {
+         color: '#CCC'
+      }
+   },
+
+   navigation: {
+      buttonOptions: {
+         backgroundColor: {
+            linearGradient: [0, 0, 0, 20],
+            stops: [
+               [0.4, '#606060'],
+               [0.6, '#333333']
+            ]
+         },
+         borderColor: '#000000',
+         symbolStroke: '#C0C0C0',
+         hoverSymbolStroke: '#FFFFFF'
+      }
+   },
+
+   exporting: {
+      buttons: {
+         exportButton: {
+            symbolFill: '#55BE3B'
+         },
+         printButton: {
+            symbolFill: '#7797BE'
+         }
+      }
+   },
+
+   // scroll charts
+   rangeSelector: {
+      buttonTheme: {
+         fill: {
+            linearGradient: [0, 0, 0, 20],
+            stops: [
+               [0.4, '#888'],
+               [0.6, '#555']
+            ]
+         },
+         stroke: '#000000',
+         style: {
+            color: '#CCC',
+            fontWeight: 'bold'
+         },
+         states: {
+            hover: {
+               fill: {
+                  linearGradient: [0, 0, 0, 20],
+                  stops: [
+                     [0.4, '#BBB'],
+                     [0.6, '#888']
+                  ]
+               },
+               stroke: '#000000',
+               style: {
+                  color: 'white'
+               }
+            },
+            select: {
+               fill: {
+                  linearGradient: [0, 0, 0, 20],
+                  stops: [
+                     [0.1, '#000'],
+                     [0.3, '#333']
+                  ]
+               },
+               stroke: '#000000',
+               style: {
+                  color: 'yellow'
+               }
+            }
+         }
+      },
+      inputStyle: {
+         backgroundColor: '#333',
+         color: 'silver'
+      },
+      labelStyle: {
+         color: 'silver'
+      }
+   },
+
+   navigator: {
+      handles: {
+         backgroundColor: '#666',
+         borderColor: '#AAA'
+      },
+      outlineColor: '#CCC',
+      maskFill: 'rgba(16, 16, 16, 0.5)',
+      series: {
+         color: '#7798BF',
+         lineColor: '#A6C7ED'
+      }
+   },
+
+   scrollbar: {
+      barBackgroundColor: {
+            linearGradient: [0, 0, 0, 20],
+            stops: [
+               [0.4, '#888'],
+               [0.6, '#555']
+            ]
+         },
+      barBorderColor: '#CCC',
+      buttonArrowColor: '#CCC',
+      buttonBackgroundColor: {
+            linearGradient: [0, 0, 0, 20],
+            stops: [
+               [0.4, '#888'],
+               [0.6, '#555']
+            ]
+         },
+      buttonBorderColor: '#CCC',
+      rifleColor: '#FFF',
+      trackBackgroundColor: {
+         linearGradient: [0, 0, 0, 10],
+         stops: [
+            [0, '#000'],
+            [1, '#333']
+         ]
+      },
+      trackBorderColor: '#666'
+   },
+
+   // special colors for some of the demo examples
+   legendBackgroundColor: 'rgba(48, 48, 48, 0.8)',
+   legendBackgroundColorSolid: 'rgb(70, 70, 70)',
+   dataLabelsColor: '#444',
+   textColor: '#E0E0E0',
+   maskColor: 'rgba(255,255,255,0.3)'
+};
+
+// Apply the theme
+var highchartsOptions = Highcharts.setOptions(Highcharts.theme);
+
+</script>
+</head>
+<body>
+<div id="container" style="width: 100%; height: 400px"></div>
+
+</body>
+</html>
