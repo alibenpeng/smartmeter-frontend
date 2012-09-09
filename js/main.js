@@ -122,27 +122,47 @@ var meters = {
                                 Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', max)
                             );
 
-                            var avg = getSeriesAverage(meters.total.data, min, max).toFixed(0);
+                            var avg = getSeriesAverage(meters.total.data, min, max).toFixed(0),
+                                total = getSeriesTotalConsumption(meters.total.data, min, max).toFixed(0)/1000;
 
-                            console.log('Average: ' + avg + 'W');
+                            console.log('Average: ' + avg + 'kWh');
 
                             $.noticeAdd({
-                                text: 'Average for selected period: <b>'+avg+'W</b>',
+                                text: 'Average for selected period: <b>'+avg+' W</b><br>'
+                                    + 'Total consumtion: <b> '+total+' Wh</b>',
                                 stay: false
                             });
 
-                            function getSeriesAverage(seriesData, from, to) {
-                                var data = seriesData, sum=0, nSamples=0, rec;
+                            function regionMap(seriesData, from, to, fn) {
+                                var res=[], rec;
 
-                                for(var i=0,n=data.length; i<n; i++) {
-                                    rec = data[i];
+                                for(var i=0,n=seriesData.length; i<n; i++) {
+                                    rec = seriesData[i];
 
                                     if(rec[0] < from || rec[0] > to) { continue; }
-                                    sum += rec[1];
-                                    nSamples++;
+
+                                    res.push(fn(rec));
                                 }
 
-                                return sum/nSamples;
+                                return res;
+                            }
+
+                            function __getTime(rec) { return rec[0]; }
+                            function __getValue(rec) { return rec[1]; }
+
+                            function getSeriesAverage(seriesData, from, to) {
+                                var values = regionMap(seriesData, from, to, function(rec) { return rec[1]; }),
+                                    sum = values.reduce(function(previousValue, currentValue) {
+                                        return previousValue+currentValue;
+                                    });
+                                return sum/values.length;
+                            }
+
+                            function getSeriesTotalConsumption(seriesData, from, to) {
+                                var duration = (to - from)/1000; // both milliseconds
+                                var avg=getSeriesAverage(seriesData, from, to);
+
+                                return avg*duration / 3600;
                             }
                         }
                     }
