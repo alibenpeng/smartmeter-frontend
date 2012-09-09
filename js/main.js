@@ -112,16 +112,24 @@ var meters = {
                     type:'column',
                     zoomType: 'x',
                     events: {
-                        'redraw' : function(ev) {
-                            var min=chart.xAxis[0].min,  max = chart.xAxis[0].max;
+                        'selection' : function(ev) {
+                            var min=ev.xAxis[0].min,  max=ev.xAxis[0].max;
 
+                            ev.preventDefault();
                             console.log( 'showing range from ',
                                 Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', min),
                                 ' to ',
                                 Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', max)
                             );
 
-                            console.log('Total AVG', getSeriesAverage(meters.total.data, min, max));
+                            var avg = getSeriesAverage(meters.total.data, min, max).toFixed(0);
+
+                            console.log('Average: ' + avg + 'W');
+
+                            $.noticeAdd({
+                                text: 'Average for selected period: <b>'+avg+'W</b>',
+                                stay: false
+                            });
 
                             function getSeriesAverage(seriesData, from, to) {
                                 var data = seriesData, sum=0, nSamples=0, rec;
