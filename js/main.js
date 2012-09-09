@@ -122,14 +122,14 @@ var meters = {
                                 Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', max)
                             );
 
-                            var avg = getSeriesAverage(meters.total.data, min, max).toFixed(0),
+                            var duration = (to - from)/1000, // both milliseconds
+                                avg = getSeriesAverage(meters.total.data, min, max).toFixed(0),
                                 total = getSeriesTotalConsumption(meters.total.data, min, max).toFixed(0)/1000;
 
-                            console.log('Average: ' + avg + 'kWh');
-
                             $.noticeAdd({
-                                text: 'Average for selected period: <b>'+avg+' W</b><br>'
-                                    + 'Total consumtion: <b> '+total+' Wh</b>',
+                                text: duration.toFixed(0) + 'seconds selected<br>'
+                                    + 'Average for selected period: <b>'+avg+' W</b><br>'
+                                    + 'Total consumtion: <b> '+total+' kWh (<em>'+(23*total/100).toFixed(2)+'€</em>)</b>',
                                 stay: false
                             });
 
