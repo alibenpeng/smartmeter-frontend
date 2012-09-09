@@ -116,18 +116,14 @@ var meters = {
                             var min=ev.xAxis[0].min,  max=ev.xAxis[0].max;
 
                             ev.preventDefault();
-                            console.log( 'showing range from ',
-                                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', min),
-                                ' to ',
-                                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', max)
-                            );
 
-                            var duration = (to - from)/1000, // both milliseconds
+                            var duration = (max - min)/1000, // both milliseconds
                                 avg = getSeriesAverage(meters.total.data, min, max).toFixed(0),
                                 total = getSeriesTotalConsumption(meters.total.data, min, max).toFixed(0)/1000;
 
+
                             $.noticeAdd({
-                                text: duration.toFixed(0) + 'seconds selected<br>'
+                                text: duration.toFixed(0) + 's selected<br>'
                                     + 'Average for selected period: <b>'+avg+' W</b><br>'
                                     + 'Total consumtion: <b> '+total+' kWh (<em>'+(23*total/100).toFixed(2)+'€</em>)</b>',
                                 stay: false
