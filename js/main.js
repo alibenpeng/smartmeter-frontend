@@ -4,7 +4,7 @@ var meters = {
         loaded: false,
         src: 'data/data_meter1_24h.csv',
         zIndex: 2,
-        color: "#55ff55",
+        color: "#45ff55",
         data: []
     },
     meter2: {
