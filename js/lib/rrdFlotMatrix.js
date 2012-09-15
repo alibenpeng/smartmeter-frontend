@@ -382,7 +382,7 @@ rrdFlotMatrix.prototype.bindFlotGraph = function(flot_obj) {
     legend: {show:false, position:"nw",noColumns:3},
 				series: {
 								lines: {show:true},
-								bars: { show: true, barWidth: 0.6 },
+								bars: { show: false, barWidth: 0.6 },
 								stack: true,
 				},
     xaxis: { mode: "time" },
@@ -463,8 +463,6 @@ rrdFlotMatrix.prototype.bindFlotGraph = function(flot_obj) {
   var graph_data=this.selection_range.trim_flot_data(flot_data);
   var scale_data=flot_data;
 
-console.log("bars: " + graph_options.bars.barWidth);
-console.log("lines: " + graph_options.lines.show);
   this.graph = $.plot($(graph_jq_id), graph_data, graph_options);
   this.scale = $.plot($(scale_jq_id), scale_data, scale_options);
 

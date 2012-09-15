@@ -5,11 +5,6 @@ var meters = {
         title: 'Meter 1',
         loaded: false,
         src: 'smartmeter_meter1_watt.rrd',
-        series: {
-            lines: {show: false},
-            bars: {show: true, barWidth: 0.6},
-        },
-        zIndex: 2,
         color: "#55ff55",
         data: []
     },
@@ -17,11 +12,6 @@ var meters = {
         title: 'Meter 2',
         loaded: false,
         src: 'smartmeter_meter2_watt.rrd',
-        series: {
-            lines: {show: false},
-            bars: {show: true, barWidth: 0.6},
-        },
-        zIndex: 2,
         color: "#eeee44",
         data: []
     },
@@ -29,11 +19,6 @@ var meters = {
         title: 'Meter 3',
         loaded: false,
         src: 'smartmeter_meter3_watt.rrd',
-        series: {
-            lines: {show: false},
-            bars: {show: true, barWidth: 0.6},
-        },
-        zIndex: 2,
         color: "#5555ff",
         data: []
     },
@@ -41,11 +26,6 @@ var meters = {
         title: 'Lost',
         loaded: false,
         src: 'smartmeter_lost_watt.rrd',
-        series: {
-            lines: {show: false},
-            bars: {show: true, barWidth: 0.6},
-        },
-        zIndex: 5,
         color: "#ff5555",
         data: []
     },
@@ -53,12 +33,6 @@ var meters = {
         title: 'Total',
         loaded: false,
         src: 'smartmeter_total_watt.rrd',
-        type: "areaspline",
-        series: {
-            lines: {show: false},
-            bars: {show: true, barWidth: 0.6},
-        },
-        zIndex: 1,
         color: "#dddddd",
         data: []
     }
@@ -66,7 +40,7 @@ var meters = {
 
 
 
-rrd_data=[];
+var rrd_data=[];
 
 // This function updates the Web Page with the data from the RRD archive header
 // when a new file is selected
@@ -86,15 +60,10 @@ function update_fname() {
         null, // ds_list
         {
             legend: {noColumns: 5},
-            stack: true,
-            lines: { show: false, steps: false},
-            bars: { show: true, barWidth: 0.6 },
+            stack: false,
+            lines: { show: true, steps: true},
             tooltip: true,
             tooltipOpts: { content: "<h4>%s</h4> %x.6:<br>%y.2 W" },
-            series: {
-                lines: {show: false},
-                bars: {show: true, barWidth: 0.6},
-            },
         }, // graph_options
         meters // rrd_graph_options
     );
@@ -103,12 +72,12 @@ function update_fname() {
 // This is the callback function that,
 // given a binary file object,
 // verifies that it is a valid RRD archive
-// and performs the update of the Web page
+// and 
 function update_fname_handler(bf,idx) {
     console.log("update_fname_handler running with file idx: " + idx);
     var i_rrd_data=undefined;
     try {
-        var i_rrd_data=new RRDFile(bf);            
+        i_rrd_data=new RRDFile(bf);            
     } catch(err) {
         alert("File at idx "+idx+" is not a valid RRD archive!\n"+err);
     }
@@ -120,9 +89,57 @@ function update_fname_handler(bf,idx) {
 	if (numLoaded == 5) {
     //if ((rrd_data[0]!=undefined) && (rrd_data[1]!=undefined) && (rrd_data[2]!=undefined)) {
         console.log("calling update_fname()");
-        update_fname();
+        //update_fname();
+        element_update();
     }
 }
+
+function element_update() {
+    ds_idx=0;
+    rra_idx=0;
+    clm_nr=20;
+
+    // cleanup
+    // rows may have been added during previous updates
+    var oTable=document.getElementById("infotable");
+    while (oTable.rows.length>=4) {
+        oTable.deleteRow(3);
+    } 
+
+    $.each(rrd_data, function(idx, i_rrd_data) {
+        // Generic header info
+        oRow=oTable.insertRow(-1);
+        var oCell=oRow.insertCell(-1);
+        oCell.innerHTML=i_rrd_data.getDS(ds_idx).getName();;
+        oCell=oRow.insertCell(-1);
+        oCell.innerHTML=rra_idx;
+
+        // get RRA info
+        var rra=i_rrd_data.getRRA(rra_idx);
+        var rows=rra.getNrRows();
+
+        var oRow=undefined;
+        for (var i=0; i<rows;i++) {
+            if ((i%clm_nr)==0) {
+                // One new row every clm_nr
+                oRow=oTable.insertRow(-1);
+                var oCell=oRow.insertCell(-1);
+                oCell.innerHTML=i;
+            }
+            var oCell=oRow.insertCell(-1);
+            oCell.colSpan=20/clm_nr;
+            var el=rra.getElFast(i,ds_idx);
+            if (el!=undefined) {
+                oCell.innerHTML=Math.round(rra.getElFast(i,ds_idx));
+            } else {
+                oCell.innerHTML="-";
+            }
+        }
+    });
+}      
+
+// Remove the Javascript warning
+document.getElementById("infotable").deleteRow(0);
 
 // this function is invoked when the RRD file name changes
 var base_el=document.getElementById("mygraph");
