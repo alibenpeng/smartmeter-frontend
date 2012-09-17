@@ -3,41 +3,79 @@ var graph, x, o;
 
 var meters = {
     meter1: {
-        title: 'Meter 1',
+        label: 'Meter 1',
         loaded: false,
         src: '/smartmeter_meter1_watt.rrd',
         color: "#55ff55",
+        bars : {
+            show : true,
+            stacked : true,
+            horizontal : false,
+            barWidth : 10.6,
+            lineWidth : 1,
+            shadowSize : 0
+        },
         data: []
     },
     meter2: {
-        title: 'Meter 2',
+        label: 'Meter 2',
         loaded: false,
         src: '/smartmeter_meter2_watt.rrd',
         color: "#eeee44",
+        bars : {
+            show : true,
+            stacked : true,
+            horizontal : false,
+            barWidth : 10.6,
+            lineWidth : 1,
+            shadowSize : 0
+        },
         data: []
     },
     meter3: {
-        title: 'Meter 3',
+        label: 'Meter 3',
         loaded: false,
         src: '/smartmeter_meter3_watt.rrd',
         color: "#5555ff",
+        bars : {
+            show : true,
+            stacked : true,
+            horizontal : false,
+            barWidth : 10.6,
+            lineWidth : 1,
+            shadowSize : 0
+        },
         data: []
     },
     lost: {
-        title: 'Lost',
+        label: 'Lost',
         loaded: false,
         src: '/smartmeter_lost_watt.rrd',
         color: "#ff5555",
+        bars : {
+            show : true,
+            stacked : true,
+            horizontal : false,
+            barWidth : 10.6,
+            lineWidth : 1,
+            shadowSize : 0
+        },
         data: []
     },
-/*
     total: {
-        title: 'Total',
+        label: 'Total',
         loaded: false,
         src: '/smartmeter_total_watt.rrd',
         color: "#dddddd",
+        lines: {
+            show: true,
+            lineWidth : 1,
+            stacked: false,
+            fill: true,
+        },
         data: []
     }
+/*
 */
 };
 
@@ -95,6 +133,7 @@ function draw_graph(container) {
     var options = {
         xaxis : {
             mode : 'time', 
+            timeMode : 'local',
             labelsAngle : 45
         },
         yaxis : {
@@ -105,14 +144,6 @@ function draw_graph(container) {
         },
         legend : {
             backgroundColor : '#D2E8FF' // Light blue 
-        },
-        bars : {
-            show : true,
-            stacked : true,
-            horizontal : false,
-            barWidth : 0.6,
-            lineWidth : 1,
-            shadowSize : 0
         },
         grid : {
             verticalLines : false,
@@ -131,6 +162,7 @@ function draw_graph(container) {
         // Return a new graph.
         return Flotr.draw(
             container,
+/*
             [
                 { data : meters.meter1.data, label : 'Meter 1' },
                 { data : meters.meter2.data, label : 'Meter 2' },
@@ -138,6 +170,8 @@ function draw_graph(container) {
                 { data : meters.lost.data, label : 'Lost' },
                 //{ data : meters.total.data, label : 'Total' },
             ],
+*/
+            meters,
             o
         );
     }
@@ -146,11 +180,13 @@ function draw_graph(container) {
 
     // flotr zoom handling
     Flotr.EventAdapter.observe(container, 'flotr:select', function(area){
-        console.log("zoom");
+        console.log("zoom x: " + area.x1 + " - " + area.x2);
+        console.log("zoom y: " + area.y1 + " - " + area.y2);
         // Draw selected area
         graph = drawGraph({
-            xaxis : { min : area.x1, max : area.x2, mode : 'time', labelsAngle : 45 },
-            yaxis : { min : area.y1, max : area.y2, autoscale : true }
+            xaxis : { min : area.x1, max : area.x2, mode : 'time', timeMode : 'local', labelsAngle : 45 },
+            yaxis : { min : area.y1, max : area.y2, autoscale : true },
+            bars : { barWidth : 10.6},
         });
     });
 
@@ -190,7 +226,7 @@ function prepare_rrd_data(rrd_data, rraIdx) {
     meters[(ds_name)].loaded = true;
     numLoaded++;
     console.log("numLoaded: " + numLoaded);
-    if (numLoaded == 4) {
+    if (numLoaded == 5) {
         var mygraph = document.getElementById("mygraph");
         console.log("Drawing chart...");
         graph = draw_graph(mygraph);
