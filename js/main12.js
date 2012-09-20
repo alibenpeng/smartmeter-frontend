@@ -1,11 +1,10 @@
-var numLoaded = 0;
-var graph, x, o;
+var rrd_data, graph, x, o;
+var rrd_file = "/sm/data/smartmeter.rrd";
 
-var meters = {
-    meter1: {
-        label: 'Meter 1',
+var counters = {
+    counter1: {
+        label: 'Counter 1',
         loaded: false,
-        src: '/smartmeter_meter1_watt.rrd',
         color: "#55ff55",
         bars : {
             show : true,
@@ -17,10 +16,9 @@ var meters = {
         },
         data: []
     },
-    meter2: {
-        label: 'Meter 2',
+    counter2: {
+        label: 'Counter 2',
         loaded: false,
-        src: '/smartmeter_meter2_watt.rrd',
         color: "#eeee44",
         bars : {
             show : true,
@@ -32,10 +30,9 @@ var meters = {
         },
         data: []
     },
-    meter3: {
-        label: 'Meter 3',
+    counter3: {
+        label: 'Counter 3',
         loaded: false,
-        src: '/smartmeter_meter3_watt.rrd',
         color: "#5555ff",
         bars : {
             show : true,
@@ -50,7 +47,6 @@ var meters = {
     lost: {
         label: 'Lost',
         loaded: false,
-        src: '/smartmeter_lost_watt.rrd',
         color: "#ff5555",
         bars : {
             show : true,
@@ -65,7 +61,6 @@ var meters = {
     total: {
         label: 'Total',
         loaded: false,
-        src: '/smartmeter_total_watt.rrd',
         color: "#dddddd",
         lines: {
             show: true,
@@ -81,7 +76,6 @@ var meters = {
 
 
        
-var rrd_data=[];
 
 // draw a table with all rrd values
 function table_update() {
@@ -162,16 +156,7 @@ function draw_graph(container) {
         // Return a new graph.
         return Flotr.draw(
             container,
-/*
-            [
-                { data : meters.meter1.data, label : 'Meter 1' },
-                { data : meters.meter2.data, label : 'Meter 2' },
-                { data : meters.meter3.data, label : 'Meter 3' },
-                { data : meters.lost.data, label : 'Lost' },
-                //{ data : meters.total.data, label : 'Total' },
-            ],
-*/
-            meters,
+            counters,
             o
         );
     }
@@ -196,34 +181,53 @@ function draw_graph(container) {
 
         
 
+
 // push rrd data into a timestamped array
 
-function prepare_rrd_data(rrd_data, rraIdx) {
-    if (!rraIdx) rraIdx = 0;
-    // get RRA info
-    var rra = rrd_data.getRRA(rraIdx);
-    var rows = rra.getNrRows();
-    var last_update = rrd_data.getLastUpdate();
-    var ds_name = rrd_data.getDS(0).getName();
-    var step = rra.getStep();
-    var ts = (last_update - (step * rows)) * 1000;
+function prepare_rrd_data() {
 
-    console.log("rra: " + rra);
-    console.log("ds_name: " + ds_name);
-    console.log("rows: " + rows);
-    console.log("last_update: " + last_update);
-    console.log("step: " + step);
+    oSelRRA=document.getElementById("select_rra");
+    rraIdx=oSelRRA.options[oSelRRA.selectedIndex].value;
+    if (!rraIdx) rraIdx = 9;
+    console.log("Selected RRA: " + rraIdx);
 
-    for (var i = 0; i < rows; i++) {
-        var el = rra.getElFast(i,0);
-        if (i >= rows - 4) console.log(ts + ": " + Math.round(el));
-        if (isNaN(el)) el = 0;
-        //meters[(ds_name)].data.push( Math.round(el) );
-        meters[(ds_name)].data.push( [ ts, Math.round(el) ] );
-        ts += (step * 1000);
+    for (var dsIdx = 0; dsIdx < 4; dsIdx++) {
+        // get RRA info
+        var rra = rrd_data.getRRA(rraIdx);
+        var ds_name = rrd_data.getDS(dsIdx).getName();
+        var rows = rra.getNrRows();
+        var last_update = rrd_data.getLastUpdate();
+        var step = rra.getStep();
+        var ts = (last_update - (step * rows)) * 1000;
+
+        console.log("rra: " + rra);
+        console.log("rows: " + rows);
+        console.log("last_update: " + last_update);
+        console.log("step: " + step);
+        console.log("ds_name: " + ds_name);
+        counters[(ds_name)].data = [];
+        for (var i = 0; i < rows; i++) {
+            var el = rra.getElFast(i,dsIdx);
+            if (i >= rows - 10) console.log(ds_name + ": " + ts + ": " + el);
+            if (isNaN(el)) el = 0;
+            counters[(ds_name)].data.push( [ ts, el * step / 2 ] );
+            ts += (step * 1000);
+        }
     }
 
-    meters[(ds_name)].loaded = true;
+
+    // this function is invoked when the RRD file name changes
+    //var base_el=document.getElementById("mygraph");
+    // First clean up anything in the element
+    //while (base_el.lastChild!=null) base_el.removeChild(base_el.lastChild);
+    var mygraph = document.getElementById("mygraph");
+    console.log("Cleaning up canvas...");
+    while (mygraph.hasChildNodes()) mygraph.removeChild(mygraph.firstChild);
+    console.log("Drawing chart...");
+    draw_graph(mygraph);
+
+/*
+    counters[(ds_name)].loaded = true;
     numLoaded++;
     console.log("numLoaded: " + numLoaded);
     if (numLoaded == 5) {
@@ -232,7 +236,7 @@ function prepare_rrd_data(rrd_data, rraIdx) {
         graph = draw_graph(mygraph);
 
     }
-
+*/
 }
 
 
@@ -241,31 +245,28 @@ function prepare_rrd_data(rrd_data, rraIdx) {
 // given a binary file object,
 // verifies that it is a valid RRD archive
 // and 
-function update_fname_handler(bf,name) {
-    console.log("update_fname_handler running with file name: " + name);
+function update_fname_handler(bf) {
+    console.log("update_fname_handler running with file name: " + rrd_file);
     var i_rrd_data=undefined;
     try {
         i_rrd_data=new RRDFile(bf);            
     } catch(err) {
-        alert("File at name "+name+" is not a valid RRD archive!\n"+err);
+        alert("File at name "+rrd_file+" is not a valid RRD archive!\n"+err);
     }
     if (i_rrd_data!=undefined) {
-        prepare_rrd_data(i_rrd_data);
+        rrd_data = i_rrd_data;
+        prepare_rrd_data();
     }
 }
 
-rrd_data[0] = rrd_data[1] = rrd_data[2] = rrd_data[3] = rrd_data[4] = undefined;
 
-
-// load rrd files and give them to the preprocessor
-$.each(meters, function(meter_name, meter) {
-    console.log("Fetching " + meter.src);
-    try {
-        FetchBinaryURLAsync(meter.src,update_fname_handler,meter_name);
-    } catch (err) {
-        alert("Failed loading " + meter.src + "\n" + err);
-    }
-});
+// load rrd file and give it to the preprocessor
+console.log("Fetching " + rrd_file);
+try {
+    FetchBinaryURLAsync(rrd_file,update_fname_handler);
+} catch (err) {
+    alert("Failed loading " + rrd_file + "\n" + err);
+}
 
 
 
@@ -273,10 +274,5 @@ $.each(meters, function(meter_name, meter) {
 
 // Remove the Javascript warning
 document.getElementById("infotable").deleteRow(0);
-
-// this function is invoked when the RRD file name changes
-var base_el=document.getElementById("mygraph");
-// First clean up anything in the element
-while (base_el.lastChild!=null) base_el.removeChild(base_el.lastChild);
 
 // vim: expandtab sw=4 ts=4

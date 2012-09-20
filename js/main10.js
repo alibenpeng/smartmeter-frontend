@@ -4,35 +4,35 @@ var meters = {
     meter1: {
         title: 'Meter 1',
         loaded: false,
-        src: 'smartmeter_meter1_watt.rrd',
+        src: '/smartmeter_meter1_watt.rrd',
         color: "#55ff55",
         data: []
     },
     meter2: {
         title: 'Meter 2',
         loaded: false,
-        src: 'smartmeter_meter2_watt.rrd',
+        src: '/smartmeter_meter2_watt.rrd',
         color: "#eeee44",
         data: []
     },
     meter3: {
         title: 'Meter 3',
         loaded: false,
-        src: 'smartmeter_meter3_watt.rrd',
+        src: '/smartmeter_meter3_watt.rrd',
         color: "#5555ff",
         data: []
     },
     lost: {
         title: 'Lost',
         loaded: false,
-        src: 'smartmeter_lost_watt.rrd',
+        src: '/smartmeter_lost_watt.rrd',
         color: "#ff5555",
         data: []
     },
     total: {
         title: 'Total',
         loaded: false,
-        src: 'smartmeter_total_watt.rrd',
+        src: '/smartmeter_total_watt.rrd',
         color: "#dddddd",
         data: []
     }
@@ -89,14 +89,14 @@ function update_fname_handler(bf,idx) {
 	if (numLoaded == 5) {
     //if ((rrd_data[0]!=undefined) && (rrd_data[1]!=undefined) && (rrd_data[2]!=undefined)) {
         console.log("calling update_fname()");
-        //update_fname();
         element_update();
+        update_fname();
     }
 }
 
 function element_update() {
     ds_idx=0;
-    rra_idx=0;
+    rra_idx=9;
     clm_nr=20;
 
     // cleanup
