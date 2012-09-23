@@ -1,61 +1,53 @@
 var rrd_data, graph, x, o;
 var rrd_file = "/sm/data/smartmeter.rrd";
 
+var cXaxisOpts = {
+    mode : 'time', 
+    timeMode : 'local',
+    timeUnit : 'second',
+    labelsAngle : 0,
+    noTicks : 10,
+    tickDecimals : 0,
+};
+
+var cBarOpts = {
+    show : true,
+    stacked : true,
+    horizontal : false,
+    barWidth : undefined,
+    lineWidth : 1,
+    shadowSize : 0,
+    fillOpacity : 0.8,
+};
+
+
 var counters = {
+    counter3: {
+        label: 'Counter 3',
+        loaded: false,
+        color: "#5555ff",
+        bars : cBarOpts,
+        data: []
+    },
     counter1: {
         label: 'Counter 1',
         loaded: false,
         color: "#55ff55",
-        bars : {
-            show : true,
-            stacked : true,
-            horizontal : false,
-            barWidth : 10.6,
-            lineWidth : 1,
-            shadowSize : 0
-        },
+        bars : cBarOpts,
         data: []
     },
     counter2: {
         label: 'Counter 2',
         loaded: false,
         color: "#eeee44",
-        bars : {
-            show : true,
-            stacked : true,
-            horizontal : false,
-            barWidth : 10.6,
-            lineWidth : 1,
-            shadowSize : 0
-        },
-        data: []
-    },
-    counter3: {
-        label: 'Counter 3',
-        loaded: false,
-        color: "#5555ff",
-        bars : {
-            show : true,
-            stacked : true,
-            horizontal : false,
-            barWidth : 10.6,
-            lineWidth : 1,
-            shadowSize : 0
-        },
+        bars : cBarOpts,
         data: []
     },
     lost: {
         label: 'Lost',
         loaded: false,
         color: "#ff5555",
-        bars : {
-            show : true,
-            stacked : true,
-            horizontal : false,
-            barWidth : 10.6,
-            lineWidth : 1,
-            shadowSize : 0
-        },
+        bars : cBarOpts,
         data: []
     },
     total: {
@@ -64,7 +56,7 @@ var counters = {
         color: "#dddddd",
         lines: {
             show: true,
-            lineWidth : 1,
+            //lineWidth : 1,
             stacked: false,
             fill: true,
         },
@@ -75,6 +67,13 @@ var counters = {
 };
 
 
+function yTickFormatter(val, axisOpts) {
+    if (val < 1000) {
+        return val + ' W';
+    } else {
+        return val / 1000 + ' kW';
+    }
+}
        
 
 // draw a table with all rrd values
@@ -122,16 +121,35 @@ function table_update() {
     });
 }      
 
+function regionMap(seriesData, from, to, fn) {
+    var res=[], rec;
+
+    for(var i=0,n=seriesData.length; i<n; i++) {
+        rec = seriesData[i];
+
+        if(rec[0] < from || rec[0] > to) { continue; }
+
+        res.push(fn(rec));
+    }
+
+    return res;
+}
+
+function getSeriesAverage(seriesData, from, to) {
+    var values = regionMap(seriesData, from, to, function(rec) { return rec[1]; }),
+        sum = values.reduce(function(previousValue, currentValue) {
+            return previousValue+currentValue;
+        });
+    return sum/values.length;
+}
 
 function draw_graph(container) {
     var options = {
-        xaxis : {
-            mode : 'time', 
-            timeMode : 'local',
-            labelsAngle : 45
-        },
+        xaxis : cXaxisOpts,
         yaxis : {
             autoscale : true,
+            noTicks : 2,
+            tickFormatter : function(val, axisOpts) {return yTickFormatter(val, axisOpts);},
         },
             selection : {
             mode : 'xy'
@@ -141,7 +159,12 @@ function draw_graph(container) {
         },
         grid : {
             verticalLines : false,
-            horizontalLines : true
+            horizontalLines : true,
+            backgroundColor : {
+                colors : [[0,'#666'], [1,'#333']],
+                start : 'top',
+                end : 'bottom'
+            },
         },
         HtmlText : false,
         title : 'Power Consumption',
@@ -149,9 +172,11 @@ function draw_graph(container) {
 
     // Draw graph with default options, overwriting with passed options
     function drawGraph (opts) {
-
         // Clone the options, so the 'options' variable always keeps intact.
         o = Flotr._.extend(Flotr._.clone(options), opts || {});
+
+        oAvgCell=document.getElementById("sel_avg");
+        oAvgCell.innerHTML = "average: " + getSeriesAverage(counters.counter3.data, o.xaxis.min, o.xaxis.max);
 
         // Return a new graph.
         return Flotr.draw(
@@ -169,9 +194,18 @@ function draw_graph(container) {
         console.log("zoom y: " + area.y1 + " - " + area.y2);
         // Draw selected area
         graph = drawGraph({
-            xaxis : { min : area.x1, max : area.x2, mode : 'time', timeMode : 'local', labelsAngle : 45 },
+            xaxis : {
+                min : area.x1,
+                max : area.x2,
+                mode : cXaxisOpts.mode, 
+                timeMode : cXaxisOpts.timeMode,
+                timeUnit : cXaxisOpts.timeUnit,
+                labelsAngle : cXaxisOpts.labelsAngle,
+                noTicks : cXaxisOpts.noTicks,
+                tickDecimals : cXaxisOpts.tickDecimals,
+            },
             yaxis : { min : area.y1, max : area.y2, autoscale : true },
-            bars : { barWidth : 10.6},
+            bars : cBarOpts,
         });
     });
 
@@ -198,20 +232,28 @@ function prepare_rrd_data() {
         var rows = rra.getNrRows();
         var last_update = rrd_data.getLastUpdate();
         var step = rra.getStep();
-        var ts = (last_update - (step * rows)) * 1000;
+        var ts = (last_update - (step * rows));
+
+        // set barWidth according to step size
+        cBarOpts.barWidth = step - (step/10);
 
         console.log("rra: " + rra);
         console.log("rows: " + rows);
         console.log("last_update: " + last_update);
         console.log("step: " + step);
         console.log("ds_name: " + ds_name);
+
         counters[(ds_name)].data = [];
+
+        var firstValueSeen = false;
+        
         for (var i = 0; i < rows; i++) {
             var el = rra.getElFast(i,dsIdx);
-            if (i >= rows - 10) console.log(ds_name + ": " + ts + ": " + el);
+            if (i >= rows - 10) console.log(ds_name + ": " + ts + ": " + el * 1800);
+            if (!isNaN(el)) firstValueSeen = true;
             if (isNaN(el)) el = 0;
-            counters[(ds_name)].data.push( [ ts, el * step / 2 ] );
-            ts += (step * 1000);
+            if (firstValueSeen) counters[(ds_name)].data.push( [ ts, el * 1800 ] );
+            ts += (step);
         }
     }
 
@@ -226,17 +268,6 @@ function prepare_rrd_data() {
     console.log("Drawing chart...");
     draw_graph(mygraph);
 
-/*
-    counters[(ds_name)].loaded = true;
-    numLoaded++;
-    console.log("numLoaded: " + numLoaded);
-    if (numLoaded == 5) {
-        var mygraph = document.getElementById("mygraph");
-        console.log("Drawing chart...");
-        graph = draw_graph(mygraph);
-
-    }
-*/
 }
 
 
