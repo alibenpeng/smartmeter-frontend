@@ -23,8 +23,16 @@
   <body>
 
     <table id="infotable" border=1>
-        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
-        <tr><td id="sel_avg"></td></tr>
+        <tr><td>Last Day Average:</td><td id="last_day_avg"></td></tr>
+        <tr><td>Last Week Average:</td><td id="last_week_avg"></td></tr>
+        <tr><td>Last month Average:</td><td id="last_month_avg"></td></tr>
+        <tr><td>Selection Total Average:</td><td id="sel_total_avg"></td></tr>
+        <tr><td>Selection Counter 1 Average:</td><td id="sel_counter1_avg"></td></tr>
+        <tr><td>Selection Counter 2 Average:</td><td id="sel_counter2_avg"></td></tr>
+        <tr><td>Selection Counter 3 Average:</td><td id="sel_counter3_avg"></td></tr>
+        <tr><td>Selection Lost Average:</td><td id="sel_lost_avg"></td></tr>
+        <tr><td>Selection Total Consumption:</td><td id="sel_total_consumption"></td></tr>
+        <tr><td>Selection Cost:</td><td id="sel_total_cost"></td></tr>
     </table>
 					Columns: <select id="select_rra" onchange="prepare_rrd_data()">
                           <option value="0" selected/>60s (24h)</option>
