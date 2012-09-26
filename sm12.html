@@ -1,47 +1,58 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 
-<html>
-				<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<html lang="en">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script type="text/javascript" src="js/lib/binaryXHR.js"></script>
     <script type="text/javascript" src="js/lib/rrdFile.js"></script>
     <script type="text/javascript" src="js/lib/flotr2/flotr2.js"></script>
-  <head>
-				<style type="text/css">
-      body {
-        margin: 0px;
-        padding: 0px;
-      }
-      #mygraph {
-        width : 90%;
-        height: 384px;
-        margin: 8px auto;
-      }
-    </style>
-    <title>Power usage</title>
-  </head>
+    <head>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
 
-  <body>
+        <style type="text/css">
+            #mygraph {
+                width : 100%;
+                height: 384px;
+                margin: 8px auto;
+            }
+        </style>
+        <title>Power usage</title>
+    </head>
 
-    <table id="infotable" border=1>
-        <tr><td>Last Day Average:</td><td id="last_day_avg"></td></tr>
-        <tr><td>Last Week Average:</td><td id="last_week_avg"></td></tr>
-        <tr><td>Last month Average:</td><td id="last_month_avg"></td></tr>
-        <tr><td>Selection Total Average:</td><td id="sel_total_avg"></td></tr>
-        <tr><td>Selection Counter 1 Average:</td><td id="sel_counter1_avg"></td></tr>
-        <tr><td>Selection Counter 2 Average:</td><td id="sel_counter2_avg"></td></tr>
-        <tr><td>Selection Counter 3 Average:</td><td id="sel_counter3_avg"></td></tr>
-        <tr><td>Selection Lost Average:</td><td id="sel_lost_avg"></td></tr>
-        <tr><td>Selection Total Consumption:</td><td id="sel_total_consumption"></td></tr>
-        <tr><td>Selection Cost:</td><td id="sel_total_cost"></td></tr>
-    </table>
-					Columns: <select id="select_rra" onchange="prepare_rrd_data()">
-                          <option value="0" selected/>60s (24h)</option>
-                          <option value="3"/>5m (?)</option>
-                          <option value="6"/>30m (6m)</option>
-                          <option value="9"/>6h</option>
-                       </select>
-    <div id="mygraph"></div>
+    <body>
+        <div class="row-fluid">
+                <div id="mygraph"></div>
+        </div>
+        <div class="row-fluid">
+            <div class="span3">
 
-    <script type="text/javascript" src="js/main12.js"></script>
-  </body>
+                <select id="select_rra" onchange="prepare_rrd_data()">
+                    <option value="0" selected/>60s (24h)</option>
+                    <option value="3"/>5m (?)</option>
+                    <option value="6"/>30m (6m)</option>
+                    <option value="9"/>6h</option>
+                </select>
+
+                <div id="infotable"><table border=1>
+                    <tr><td>Last Day Average:</td><td id="last_day_avg" align="right"></td></tr>
+                    <tr><td>Last Week Average:</td><td id="last_week_avg" align="right"></td></tr>
+                    <tr><td>Last month Average:</td><td id="last_month_avg" align="right"></td></tr>
+                    <tr><td>Selection Total Average:</td><td id="sel_total_avg" align="right"></td></tr>
+                    <tr><td>Selection Counter 1 Average:</td><td id="sel_counter1_avg" align="right"></td></tr>
+                    <tr><td>Selection Counter 2 Average:</td><td id="sel_counter2_avg" align="right"></td></tr>
+                    <tr><td>Selection Counter 3 Average:</td><td id="sel_counter3_avg" align="right"></td></tr>
+                    <tr><td>Selection Lost Average:</td><td id="sel_lost_avg" align="right"></td></tr>
+                    <tr><td>Selection Total Consumption:</td><td id="sel_total_consumption" align="right"></td></tr>
+                    <tr><td>Selection Cost:</td><td id="sel_total_cost" align="right"></td></tr>
+                </table></div>
+            </div>
+
+            <div class="span9">
+            </div>
+        </div>
+
+        <script type="text/javascript" src="js/main12.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+
+    </body>
 </html>
+<!-- vim: expandtab sw=4 ts=4

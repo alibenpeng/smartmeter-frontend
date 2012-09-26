@@ -20,24 +20,60 @@ var cBarOpts = {
     fillOpacity : 0.8,
 };
 
+var cMouseOpts = {
+    track           : true, // Enable mouse tracking
+    lineColor       : 'purple',
+    relative        : true,
+    position        : 'nw',
+    sensibility     : 5,
+    trackDecimals   : 2,
+    trackFormatter  : function (o) { return tooltipFormatter(o.x, o.y, o.series.label); }
+};
+
+var cMainGraphOpts = {
+        xaxis : cXaxisOpts,
+        yaxis : {
+            autoscale : true,
+            noTicks : 2,
+            tickFormatter : function(val, axisOpts) {return yTickFormatter(val, axisOpts);},
+        },
+            selection : {
+            mode : 'xy'
+        },
+        legend : {
+            backgroundColor : '#D2E8E8' // Light blue 
+        },
+        grid : {
+            verticalLines : false,
+            horizontalLines : true,
+            backgroundColor : {
+                colors : [[0,'#666'], [1,'#333']],
+                start : 'top',
+                end : 'bottom'
+            },
+        },
+        mouse : cMouseOpts,
+        HtmlText : false,
+        title : 'Power Consumption',
+    };
 
 var counters = {
     counter3: {
-        label: 'Counter 3',
+        label: 'Counter 1',
         loaded: false,
         color: "#5555ff",
         bars : cBarOpts,
         data: []
     },
     counter1: {
-        label: 'Counter 1',
+        label: 'Counter 2',
         loaded: false,
         color: "#55ff55",
         bars : cBarOpts,
         data: []
     },
     counter2: {
-        label: 'Counter 2',
+        label: 'Counter 3',
         loaded: false,
         color: "#eeee44",
         bars : cBarOpts,
@@ -65,6 +101,42 @@ var counters = {
     },
 };
 
+function objDump(arr,level) {
+    var dumped_text = "";
+    if(!level) level = 0;
+
+    var level_padding = "";
+    for(var j=0;j<level+1;j++) level_padding += "    ";
+
+    if(typeof(arr) == 'object') {  
+        for(var item in arr) {
+            var value = arr[item];
+
+            if(typeof(value) == 'object') { 
+                dumped_text += level_padding + "'" + item + "' ...\n";
+                dumped_text += objDump(value,level+1);
+            } else {
+                dumped_text += level_padding + "'" + item + "' => \"" + value + "\"\n";
+            }
+        }
+    } else { 
+        dumped_text = "===>"+arr+"<===("+typeof(arr)+")";
+    }
+    return dumped_text;
+}
+
+
+function tooltipFormatter(x, y, s) {
+    var t = new Date(x * 1000);
+    var w = parseFloat(y / 1000);
+    if (y < 1000) {
+        w = Math.round(y) + ' W';
+    } else {
+        w = w.toFixed(3) + ' kW';
+    }
+    
+    return t.toLocaleDateString() + '<br>' + t.toLocaleTimeString() + '<br>' + s + ': ' + w;
+}
 
 function yTickFormatter(val, axisOpts) {
     if (val < 1000) {
@@ -131,31 +203,7 @@ function update_table(min, max) {
 }
 
 function draw_graph(container) {
-    var options = {
-        xaxis : cXaxisOpts,
-        yaxis : {
-            autoscale : true,
-            noTicks : 2,
-            tickFormatter : function(val, axisOpts) {return yTickFormatter(val, axisOpts);},
-        },
-            selection : {
-            mode : 'xy'
-        },
-        legend : {
-            backgroundColor : '#D2E8FF' // Light blue 
-        },
-        grid : {
-            verticalLines : false,
-            horizontalLines : true,
-            backgroundColor : {
-                colors : [[0,'#666'], [1,'#333']],
-                start : 'top',
-                end : 'bottom'
-            },
-        },
-        HtmlText : false,
-        title : 'Power Consumption',
-    };
+    var options = cMainGraphOpts;
 
     // Draw graph with default options, overwriting with passed options
     function drawGraph (opts) {
@@ -259,6 +307,12 @@ function prepare_rrd_data() {
         }
     }
 
+/*
+
+FIXME: this should work..
+
+..but it doesn't
+
     // truncate empty beginnings of data series
     for (var i = 0; i < f_rows; i++) {
         if (counters.total.data[(i)][1] === 0) {
@@ -272,7 +326,6 @@ function prepare_rrd_data() {
             break;
         }
     }
-/*
 */
 
 
