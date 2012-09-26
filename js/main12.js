@@ -1,3 +1,4 @@
+var kWh_cost = 0.23;
 var rrd_data, graph, x, o;
 var rrd_file = "/sm/data/smartmeter.rrd";
 
@@ -22,83 +23,78 @@ var cBarOpts = {
 
 var cMouseOpts = {
     track           : true, // Enable mouse tracking
-    trackAll        : true,
-    trackY          : true,
-    lineColor       : 'purple',
-    relative        : true,
-    position        : 'nw',
+    trackAll        : false,
+    trackY          : false,
+    lineColor       : null,
+    relative        : false,
+    position        : 'ne',
     sensibility     : 5,
-    trackDecimals   : 2,
+    trackDecimals   : 0,
     trackFormatter  : function (o) { return tooltipFormatter(o.x, o.y, o.series.label); }
 };
 
 var cMainGraphOpts = {
-        xaxis : cXaxisOpts,
-        yaxis : {
-            autoscale : true,
-            noTicks : 2,
-            tickFormatter : function(val, axisOpts) {return yTickFormatter(val, axisOpts);},
+    mouse : cMouseOpts,
+    HtmlText : false,
+    title : 'Power Consumption',
+    xaxis : cXaxisOpts,
+    yaxis : {
+        autoscale : true,
+        noTicks : 2,
+        tickFormatter : function(val, axisOpts) {return yTickFormatter(val, axisOpts);},
+    },
+        selection : {
+        mode : 'xy'
+    },
+    legend : {
+        backgroundColor : '#ccc' // Light blue 
+    },
+    grid : {
+        verticalLines : false,
+        horizontalLines : true,
+        backgroundColor : {
+            colors : [[0,'#666'], [1,'#333']],
+            start : 'top',
+            end : 'bottom'
         },
-            selection : {
-            mode : 'xy'
-        },
-        legend : {
-            backgroundColor : '#D2E8E8' // Light blue 
-        },
-        grid : {
-            verticalLines : false,
-            horizontalLines : true,
-            backgroundColor : {
-                colors : [[0,'#666'], [1,'#333']],
-                start : 'top',
-                end : 'bottom'
-            },
-        },
-        mouse : cMouseOpts,
-        HtmlText : false,
-        title : 'Power Consumption',
-    };
+    },
+};
 
 var counters = {
+    total: {
+        label: 'Total',
+        color: "#dddddd",
+        lines: {
+            show: true,
+            lineWidth : 2,
+            stacked: false,
+            fill: true,
+            fillOpacity : 0.3,
+        },
+        data: []
+    },
+    lost: {
+        label: 'Lost',
+        color: "#ff5555",
+        bars : cBarOpts,
+        data: []
+    },
     counter3: {
         label: 'Counter 1',
-        loaded: false,
         color: "#5555ff",
         bars : cBarOpts,
         data: []
     },
     counter1: {
         label: 'Counter 2',
-        loaded: false,
         color: "#55ff55",
         bars : cBarOpts,
         data: []
     },
     counter2: {
         label: 'Counter 3',
-        loaded: false,
         color: "#eeee44",
         bars : cBarOpts,
-        data: []
-    },
-    lost: {
-        label: 'Lost',
-        loaded: false,
-        color: "#ff5555",
-        bars : cBarOpts,
-        data: []
-    },
-    total: {
-        label: 'Total',
-        loaded: false,
-        color: "#dddddd",
-        lines: {
-            show: true,
-            lineWidth : 1,
-            stacked: false,
-            fill: true,
-            fillOpacity : 0.2,
-        },
         data: []
     },
 };
@@ -219,7 +215,7 @@ function update_table(min, max) {
     oTotCons.innerHTML =consumption.toFixed(3) + " kWh";
 
     var oTotCost=document.getElementById("sel_total_cost");
-    var cost = parseFloat(getSeriesTotalConsumption(counters.total.data, min, max) / 1000 * 0.23);
+    var cost = parseFloat(getSeriesTotalConsumption(counters.total.data, min, max) / 1000 * kWh_cost);
     oTotCost.innerHTML = cost.toFixed(2) + " &euro;";
 }
 
@@ -277,8 +273,7 @@ function draw_graph(container) {
 
 
 // push rrd data into a timestamped array
-
-function prepare_rrd_data() {
+function prepare_master_graph() {
 
     var f_rows;
 
@@ -313,7 +308,7 @@ function prepare_rrd_data() {
         
         for (var i = 0; i < f_rows; i++) {
             var el = rra.getElFast(i,dsIdx);
-            if (i >= rows - 10) console.log(ds_name + ": " + ts + ": " + el * 1800);
+            //if (i >= rows - 10) console.log(ds_name + ": " + ts + ": " + el * 1800);
             //if (!isNaN(el)) firstValueSeen = true;
             if (isNaN(el)) { el = 0; }
             //if (firstValueSeen) {
@@ -350,18 +345,95 @@ FIXME: this should work..
 */
 
 
-    // this function is invoked when the RRD file name changes
-    //var base_el=document.getElementById("mygraph");
-    // First clean up anything in the element
-    //while (base_el.lastChild!=null) base_el.removeChild(base_el.lastChild);
-    var mygraph = document.getElementById("mygraph");
-    //console.log("Cleaning up canvas...");
-    //while (mygraph.hasChildNodes()) mygraph.removeChild(mygraph.firstChild);
-    console.log("Drawing chart...");
-    draw_graph(mygraph);
+    var masterGraph = document.getElementById("masterGraph");
+    console.log("Drawing master chart...");
+    draw_graph(masterGraph);
 
 }
 
+
+function get_next_month(ts) {
+    var d = new Date(ts * 1000);
+    var next_month = d.getMonth() + 1;
+    console.log("date before conversion: " + d);
+    d.setMonth(next_month);
+    d.setDate(1);
+    d.setHours(0);
+    d.setMinutes(0);
+    d.setSeconds(0);
+    console.log("date after conversion:  " + d);
+    return d.getTime() / 1000;
+}
+
+function draw_consumption_graph() {
+    var total = [];
+    var series = {
+        data: []
+    };
+    var rraIdx = 6;
+    var opts = {
+        title : 'Monthly cost',
+        bars : {
+            show : true,
+        },
+        yaxis : {
+            tickFormatter : function(val, axisOpts) { return val + " &euro;" },
+        },
+    };
+
+    for (var dsIdx = 0; dsIdx < 4; dsIdx++) {
+        // get RRA info
+        var rra = rrd_data.getRRA(rraIdx);
+        var ds_name = rrd_data.getDS(dsIdx).getName();
+        var rows = rra.getNrRows();
+        var last_update = rrd_data.getLastUpdate();
+        var step = rra.getStep();
+        var ts = (last_update - (step * rows));
+
+        
+        for (var i = 0; i < rows; i++) {
+            var el = rra.getElFast(i,dsIdx);
+            if (isNaN(el)) { el = 0; }
+            if (total[(i)]) {
+                total[(i)][1] += el * 1800;
+            } else {
+                total.push( [ ts, el * 1800 ] );
+            }
+            ts += (step);
+        }
+    }
+
+    // calculate monthly consumption
+    var next_month_start = get_next_month(total[0][0]);
+    var this_month_start = total[0][0];
+    $.each(total, function(idx, obj) {
+        if (obj[0] > next_month_start || idx === total.length - 1) {
+            var xVal = new Date((next_month_start -1) * 1000);
+            series.data.push([
+                (xVal.getMonth() + 1),
+                Math.round(getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000)
+            ]);
+            this_month_start = next_month_start;
+            next_month_start = get_next_month(next_month_start);
+        }
+    });
+
+    var monthlyConsumptionGraph = document.getElementById("monthlyConsumptionGraph");
+    console.log("Drawing consumption chart...");
+    var mcg = Flotr.draw(monthlyConsumptionGraph, series, opts);
+
+}
+
+
+function draw_plusminus_graph() {
+
+    var rraIdx = 6;
+
+    var monthlyPlusMinusGraph = document.getElementById("monthlyPlusMinusGraph");
+    console.log("Drawing plus minus chart...");
+    draw_graph(monthlyPlusMinusGraph);
+
+}
 
 
 // This is the callback function that,
@@ -378,15 +450,19 @@ function update_fname_handler(bf) {
     }
     if (i_rrd_data!=undefined) {
         rrd_data = i_rrd_data;
-        prepare_rrd_data();
+        prepare_master_graph();
+        draw_consumption_graph();
+        //draw_plusminus_graph();
     }
 }
 
 
+// show a spinner animation to indicate the rrd file is loading
+var spinnerTarget = document.getElementById("masterGraph");
+var spinner = new Spinner(cSpinnerOpts).spin(spinnerTarget);
+
 // load rrd file and give it to the preprocessor
 console.log("Fetching " + rrd_file);
-var spinnerTarget = document.getElementById("mygraph");
-var spinner = new Spinner(cSpinnerOpts).spin(spinnerTarget);
 try {
     FetchBinaryURLAsync(rrd_file,update_fname_handler);
 } catch (err) {

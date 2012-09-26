@@ -11,13 +11,23 @@
 
         <style type="text/css">
             #infotable {
-                width : 90%;
+                width : 95%;
                 height: 90%;
                 margin: 8px auto;
             }
-            #mygraph {
-                width : 98%;
+            #masterGraph {
+                width : 95%;
                 height: 384px;
+                margin: 8px auto;
+            }
+            #monthlyConsumptionGraph {
+                width : 95%;
+                height: 277px;
+                margin: 8px auto;
+            }
+            #monthlyPlusMinusGraph {
+                width : 95%;
+                height: 277px;
                 margin: 8px auto;
             }
         </style>
@@ -25,15 +35,13 @@
     </head>
 
     <body>
-        <div class="row-fluid">
-                <div id="mygraph"></div>
-        </div>
-        <div class="row-fluid">
-            <div class="span3">
+        <div class="row" id="masterGraph"></div>
+        <div class="row">
+            <div class="span4">
 
                 <table id="infotable" border=1>
                     <tr><td colspan="2">
-                        <select id="select_rra" onchange="prepare_rrd_data()">
+                        <select id="select_rra" onchange="prepare_master_graph()">
                             <option value="0" selected/>2 Days (1 min)</option>
                             <option value="3"/>2 Weeks (5 min)</option>
                             <option value="6"/>6 Months (30 min)</option>
@@ -54,7 +62,11 @@
                 </table>
             </div>
 
-            <div class="span9">
+            <div class="span8">
+                <div class="span4" id="monthlyConsumptionGraph">
+                </div>
+                <div class="span4" id="monthlyPlusminusGraph">
+                </div>
             </div>
         </div>
 
