@@ -5,12 +5,18 @@
     <script type="text/javascript" src="js/lib/binaryXHR.js"></script>
     <script type="text/javascript" src="js/lib/rrdFile.js"></script>
     <script type="text/javascript" src="js/lib/flotr2/flotr2.js"></script>
+    <script type="text/javascript" src="js/spin.min.js"></script>
     <head>
         <link href="css/bootstrap.min.css" rel="stylesheet">
 
         <style type="text/css">
+            #infotable {
+                width : 90%;
+                height: 90%;
+                margin: 8px auto;
+            }
             #mygraph {
-                width : 100%;
+                width : 98%;
                 height: 384px;
                 margin: 8px auto;
             }
@@ -25,14 +31,16 @@
         <div class="row-fluid">
             <div class="span3">
 
-                <select id="select_rra" onchange="prepare_rrd_data()">
-                    <option value="0" selected/>60s (24h)</option>
-                    <option value="3"/>5m (?)</option>
-                    <option value="6"/>30m (6m)</option>
-                    <option value="9"/>6h</option>
-                </select>
+                <table id="infotable" border=1>
+                    <tr><td colspan="2">
+                        <select id="select_rra" onchange="prepare_rrd_data()">
+                            <option value="0" selected/>2 Days (1 min)</option>
+                            <option value="3"/>2 Weeks (5 min)</option>
+                            <option value="6"/>6 Months (30 min)</option>
+                            <option value="9"/>2 Years (6 hours)</option>
+                        </select>
+                    </td></tr>
 
-                <div id="infotable"><table border=1>
                     <tr><td>Last Day Average:</td><td id="last_day_avg" align="right"></td></tr>
                     <tr><td>Last Week Average:</td><td id="last_week_avg" align="right"></td></tr>
                     <tr><td>Last month Average:</td><td id="last_month_avg" align="right"></td></tr>
@@ -43,7 +51,7 @@
                     <tr><td>Selection Lost Average:</td><td id="sel_lost_avg" align="right"></td></tr>
                     <tr><td>Selection Total Consumption:</td><td id="sel_total_consumption" align="right"></td></tr>
                     <tr><td>Selection Cost:</td><td id="sel_total_cost" align="right"></td></tr>
-                </table></div>
+                </table>
             </div>
 
             <div class="span9">
