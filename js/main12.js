@@ -1,6 +1,35 @@
-var kWh_cost = 0.23;
-var rrd_data, graph, x, o;
+//
+// main options
+var kWh_cost = 0.219;
+var kWh_paid = 4262;
+var counter_reference = {
+    counter1 : {
+        timestamp : 0, // 1.10.2012, 00:00 uhr
+        value : 0, // zaehlerstand..
+    },
+    counter2 : {
+        timestamp : 0, // 1.10.2012, 00:00 uhr
+        value : 0, // zaehlerstand..
+    },
+    counter3 : {
+        timestamp : 0, // 1.10.2012, 00:00 uhr
+        value : 0, // zaehlerstand..
+    },
+    lost : {
+        timestamp : 0, // 1.10.2012, 00:00 uhr
+        value : 0, // muss null sein, weil gabs vorher nicht..
+    },
+    total : {
+        timestamp : 0, // 1.10.2012, 00:00 uhr
+        value : 0, // der im keller..
+    },
+};
 var rrd_file = "/sm/data/smartmeter.rrd";
+
+
+// various options
+
+var rrd_data, graph, x, o;
 
 var cXaxisOpts = {
     mode : 'time', 
@@ -36,7 +65,7 @@ var cMouseOpts = {
 var cMainGraphOpts = {
     mouse : cMouseOpts,
     HtmlText : false,
-    title : 'Power Consumption',
+    title : 'Average Consumption',
     xaxis : cXaxisOpts,
     yaxis : {
         autoscale : true,
@@ -118,6 +147,8 @@ var cSpinnerOpts = {
 };
 
 
+// helper functions
+
 function objDump(arr,level) {
     var dumped_text = "";
     if(!level) level = 0;
@@ -193,6 +224,36 @@ function getSeriesTotalConsumption(seriesData, from, to) {
 
     return avg*duration / 3600;
 }
+
+function get_next_month(ts) {
+    var d = new Date(ts * 1000);
+    var next_month = d.getMonth() + 1;
+    console.log("date before conversion: " + d);
+    d.setMonth(next_month);
+    d.setDate(1);
+    d.setHours(0);
+    d.setMinutes(0);
+    d.setSeconds(0);
+    console.log("date after conversion:  " + d);
+    return d.getTime() / 1000;
+}
+
+function truncate_empty_space(array) {
+    var newArray = [];
+    var firstValueSeen = 0;
+    $.each(array, function(idx, obj) {
+        if (firstValueSeen) {
+            newArray.push(obj);
+        } else {
+            if (obj[1] > 0) {
+                console.log("first value found");
+                firstValueSeen = 1;
+            }
+        }
+    });
+    return newArray;
+}
+
 
 function update_table(min, max) {
     var oAvgTot=document.getElementById("sel_total_avg");
@@ -272,7 +333,7 @@ function draw_graph(container) {
         
 
 
-// push rrd data into a timestamped array
+// push rrd data into a timestamped array and give it to the draw_graph() function
 function prepare_master_graph() {
 
     var f_rows;
@@ -295,7 +356,7 @@ function prepare_master_graph() {
         var ts = (last_update - (step * rows));
 
         // set barWidth according to step size
-        cBarOpts.barWidth = step - (step/10);
+        cBarOpts.barWidth = step - (step/5);
 
         console.log("rra: " + rra);
         console.log("rows: " + rows);
@@ -323,63 +384,62 @@ function prepare_master_graph() {
         }
     }
 
-/*
 
-FIXME: this should work..
-
-..but it doesn't
 
     // truncate empty beginnings of data series
-    for (var i = 0; i < f_rows; i++) {
-        if (counters.total.data[(i)][1] === 0) {
-            console.log("deleting datapoint " + counters.total.data[(i)][0]);
-            counters.counter1.data.shift();
-            counters.counter2.data.shift();
-            counters.counter3.data.shift();
-            counters.lost.data.shift();
-            counters.total.data.shift();
+    var counter_names = [ "counter1", "counter2", "counter3", "lost", "total" ];
+    $.each(counter_names, function(idx, counterName) {
+        counters[(counterName)].data = truncate_empty_space(counters[(counterName)].data);
+    });
+
+    // pad all arrays to the beginning of total or zoom wont work properly
+    var maxLength;
+    var tempTotal = [];
+    $.each(counter_names.reverse(), function(idx, counterName) {
+        console.log("ficken: " + idx);
+        if (idx === 0) {
+            maxLength = counters[(counterName)].data.length;
+            tempTotal = counters[(counterName)].data.reverse();
         } else {
-            break;
+            var tempArray = counters[(counterName)].data.reverse();
+            var diff = maxLength - tempArray.length;
+            for (i = 0; i < diff; i++) {
+                //console.log("pushing " + tempTotal[tempArray.length][0]);
+                tempArray.push( [ tempTotal[tempArray.length][0], 0 ] );
+            }
+            counters[(counterName)].data = tempArray.reverse();
         }
-    }
-*/
+    });
 
-
+    // draw the graph
     var masterGraph = document.getElementById("masterGraph");
     console.log("Drawing master chart...");
     draw_graph(masterGraph);
 
 }
 
-
-function get_next_month(ts) {
-    var d = new Date(ts * 1000);
-    var next_month = d.getMonth() + 1;
-    console.log("date before conversion: " + d);
-    d.setMonth(next_month);
-    d.setDate(1);
-    d.setHours(0);
-    d.setMinutes(0);
-    d.setSeconds(0);
-    console.log("date after conversion:  " + d);
-    return d.getTime() / 1000;
-}
-
-function draw_consumption_graph() {
+function draw_consumption_graphs() {
     var total = [];
-    var series = {
-        data: []
-    };
+    var total_cost = { data: [] };
+    var rel_cost = { data: [] };
     var rraIdx = 6;
     var opts = {
-        title : 'Monthly cost',
+        title : 'Absolute cost',
         bars : {
             show : true,
+            barWidth : 0.8,
         },
         yaxis : {
             tickFormatter : function(val, axisOpts) { return val + " &euro;" },
+            min : 0,
         },
+        mouse : cMouseOpts,
     };
+
+    // get_next_month muss get_next_day_week_month_year werden, damit dass hier funktioniert!
+    oSelRRA=document.getElementById("select_consumption_rra");
+    rraIdx=oSelRRA.options[oSelRRA.selectedIndex].value;
+    if (!rraIdx) rraIdx = 6;
 
     for (var dsIdx = 0; dsIdx < 4; dsIdx++) {
         // get RRA info
@@ -403,38 +463,41 @@ function draw_consumption_graph() {
         }
     }
 
+    total = truncate_empty_space(total);
     // calculate monthly consumption
     var next_month_start = get_next_month(total[0][0]);
     var this_month_start = total[0][0];
     $.each(total, function(idx, obj) {
         if (obj[0] > next_month_start || idx === total.length - 1) {
-            var xVal = new Date((next_month_start -1) * 1000);
-            series.data.push([
+            var xVal = new Date((next_month_start - 1) * 1000);
+            console.log("pushing " + Math.round(getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000));
+            total_cost.data.push([
                 (xVal.getMonth() + 1),
-                Math.round(getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000)
+                Math.round(getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000),
+            ]);
+            rel_cost.data.push([
+                (xVal.getMonth() + 1),
+                Math.round((getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12)),
             ]);
             this_month_start = next_month_start;
             next_month_start = get_next_month(next_month_start);
         }
     });
 
+    // draw the absolute cost graph
     var monthlyConsumptionGraph = document.getElementById("monthlyConsumptionGraph");
     console.log("Drawing consumption chart...");
-    var mcg = Flotr.draw(monthlyConsumptionGraph, series, opts);
+    var total_cost_graph = Flotr.draw(monthlyConsumptionGraph, total_cost, opts);
 
-}
-
-
-function draw_plusminus_graph() {
-
-    var rraIdx = 6;
-
+    // draw the relaive cost graph
+    opts.yaxis.min = -50;
+    opts.yaxis.max = 50;
+    opts.title = "Relative cost";
     var monthlyPlusMinusGraph = document.getElementById("monthlyPlusMinusGraph");
     console.log("Drawing plus minus chart...");
-    draw_graph(monthlyPlusMinusGraph);
+    var total_cost_graph = Flotr.draw(monthlyPlusMinusGraph, rel_cost, opts);
 
 }
-
 
 // This is the callback function that,
 // given a binary file object,
@@ -451,7 +514,7 @@ function update_fname_handler(bf) {
     if (i_rrd_data!=undefined) {
         rrd_data = i_rrd_data;
         prepare_master_graph();
-        draw_consumption_graph();
+        draw_consumption_graphs();
         //draw_plusminus_graph();
     }
 }

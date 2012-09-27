@@ -49,6 +49,14 @@
                         </select>
                     </td></tr>
 
+                    <tr><td colspan="2">
+                        <select id="select_consumption_rra" onchange="draw_consumption_graphs()">
+                            <option value="9" selected/>Monthly consumption</option>
+                            <option value="6"/>Weekly consumption</option>
+                            <option value="3"/>Daily consumption (2 weeks)</option>
+                        </select>
+                    </td></tr>
+
                     <tr><td>Last Day Average:</td><td id="last_day_avg" align="right"></td></tr>
                     <tr><td>Last Week Average:</td><td id="last_week_avg" align="right"></td></tr>
                     <tr><td>Last month Average:</td><td id="last_month_avg" align="right"></td></tr>
@@ -62,11 +70,11 @@
                 </table>
             </div>
 
-            <div class="span8">
-                <div class="span4" id="monthlyConsumptionGraph">
-                </div>
-                <div class="span4" id="monthlyPlusminusGraph">
-                </div>
+            <div class="span7">
+                <div id="monthlyConsumptionGraph"></div>
+            </div>
+            <div class="span7">
+                <div id="monthlyPlusMinusGraph"></div>
             </div>
         </div>
 
