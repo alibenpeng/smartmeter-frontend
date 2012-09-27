@@ -79,6 +79,7 @@ var cMainGraphOpts = {
         backgroundColor : '#ccc' // Light blue 
     },
     grid : {
+        tickColor : '#666',
         verticalLines : false,
         horizontalLines : true,
         backgroundColor : {
@@ -288,6 +289,7 @@ function draw_graph(container) {
         // Clone the options, so the 'options' variable always keeps intact.
         o = Flotr._.extend(Flotr._.clone(options), opts || {});
 
+        o.mouse.trackFormatter = function (o) { return tooltipFormatter(o.x, o.y, o.series.label); };
         update_table(o.xaxis.min, o.xaxis.max);
 
         // Return a new graph.
@@ -457,6 +459,10 @@ function draw_consumption_graphs() {
                 [10, 'Nov'],
                 [11, 'Dec'],
             ],
+        },
+        grid : {
+            verticalLines : false,
+            tickColor : '#bbb',
         },
         mouse : cMouseOpts,
     };
