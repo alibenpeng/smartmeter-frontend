@@ -4,23 +4,23 @@ var kWh_cost = 0.219;
 var kWh_paid = 4262;
 var counter_reference = {
     counter1 : {
-        timestamp : 0, // 1.10.2012, 00:00 uhr
+        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
         value : 0, // zaehlerstand..
     },
     counter2 : {
-        timestamp : 0, // 1.10.2012, 00:00 uhr
+        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
         value : 0, // zaehlerstand..
     },
     counter3 : {
-        timestamp : 0, // 1.10.2012, 00:00 uhr
+        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
         value : 0, // zaehlerstand..
     },
     lost : {
-        timestamp : 0, // 1.10.2012, 00:00 uhr
+        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
         value : 0, // muss null sein, weil gabs vorher nicht..
     },
     total : {
-        timestamp : 0, // 1.10.2012, 00:00 uhr
+        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
         value : 0, // der im keller..
     },
 };
@@ -433,8 +433,36 @@ function draw_consumption_graphs() {
             tickFormatter : function(val, axisOpts) { return val + " &euro;" },
             min : 0,
         },
+        y2axis : {
+            tickFormatter : function(val, axisOpts) { return val + " kWh" },
+            min : 0,
+        },
+        xaxis : {
+                mode : 'time',
+                timeMode : 'local',
+                timeUnit : 'month',
+/*
+            ticks : [
+                [1, 'Jan'],
+                [2, 'Feb'],
+                [3, 'Mar'],
+                [4, 'Apr'],
+                [5, 'May'],
+                [6, 'Jun'],
+                [7, 'Jul'],
+                [8, 'Aug'],
+                [9, 'Sep'],
+                [10, 'Oct'],
+                [11, 'Nov'],
+                [12, 'Dec'],
+            ],
+            noTicks : 2,
+*/
+        },
         mouse : cMouseOpts,
     };
+
+    opts.xaxis.tickDecimals = 0;
 
     // get_next_month muss get_next_day_week_month_year werden, damit dass hier funktioniert!
     oSelRRA=document.getElementById("select_consumption_rra");
@@ -469,14 +497,14 @@ function draw_consumption_graphs() {
     var this_month_start = total[0][0];
     $.each(total, function(idx, obj) {
         if (obj[0] > next_month_start || idx === total.length - 1) {
-            var xVal = new Date((next_month_start - 1) * 1000);
+            var xVal = new Date((this_month_start) * 1000);
             console.log("pushing " + Math.round(getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000));
             total_cost.data.push([
-                (xVal.getMonth() + 1),
+                (xVal.getMonth()),
                 Math.round(getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000),
             ]);
             rel_cost.data.push([
-                (xVal.getMonth() + 1),
+                (xVal.getMonth()),
                 Math.round((getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12)),
             ]);
             this_month_start = next_month_start;
