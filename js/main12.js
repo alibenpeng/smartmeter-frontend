@@ -461,6 +461,7 @@ function draw_consumption_graphs() {
         mouse : cMouseOpts,
     };
 
+    opts.mouse.trackFormatter = function(o) {return o.y + " &euro;" },
     opts.xaxis.tickDecimals = 0;
     //opts.bars.barWidth = 0.9;
     //opts.bars.centered = true;
