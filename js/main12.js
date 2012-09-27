@@ -420,49 +420,54 @@ function prepare_master_graph() {
 
 function draw_consumption_graphs() {
     var total = [];
-    var total_cost = { data: [] };
-    var rel_cost = { data: [] };
+    var total_cost = { data: [], bars : { fillColor : { colors : [ '#00ff00', '#0000ff' ], start : 'top', end : 'bottom' } } };
+    var rel_cost = { data: [], bars : { fillColor : { colors : [ '#00ff00', '#0000ff' ], start : 'top', end : 'bottom' } } };
+    //var rel_cost = { data: [] };
     var rraIdx = 6;
     var opts = {
         title : 'Absolute cost',
         bars : {
             show : true,
-            barWidth : 0.8,
+            barWidth : 0.9,
         },
+/*
+        bars : cBarOpts,
+*/
         yaxis : {
             tickFormatter : function(val, axisOpts) { return val + " &euro;" },
             min : 0,
         },
-        y2axis : {
-            tickFormatter : function(val, axisOpts) { return val + " kWh" },
-            min : 0,
-        },
         xaxis : {
+/*
                 mode : 'time',
                 timeMode : 'local',
                 timeUnit : 'month',
-/*
-            ticks : [
-                [1, 'Jan'],
-                [2, 'Feb'],
-                [3, 'Mar'],
-                [4, 'Apr'],
-                [5, 'May'],
-                [6, 'Jun'],
-                [7, 'Jul'],
-                [8, 'Aug'],
-                [9, 'Sep'],
-                [10, 'Oct'],
-                [11, 'Nov'],
-                [12, 'Dec'],
-            ],
-            noTicks : 2,
 */
+            ticks : [
+                [0, 'Jan'],
+                [1, 'Feb'],
+                [2, 'Mar'],
+                [3, 'Apr'],
+                [4, 'May'],
+                [5, 'Jun'],
+                [6, 'Jul'],
+                [7, 'Aug'],
+                [8, 'Sep'],
+                [9, 'Oct'],
+                [10, 'Nov'],
+                [11, 'Dec'],
+            ],
         },
         mouse : cMouseOpts,
     };
 
     opts.xaxis.tickDecimals = 0;
+    //opts.bars.barWidth = 0.9;
+    //opts.bars.centered = true;
+    opts.bars.lineWidth = 0;
+    opts.bars.fillOpacity = 0.8;
+    opts.bars.fillColor = { colors : [ '#FF0000', '#00FF00' ] };
+    
 
     // get_next_month muss get_next_day_week_month_year werden, damit dass hier funktioniert!
     oSelRRA=document.getElementById("select_consumption_rra");
@@ -521,6 +526,7 @@ function draw_consumption_graphs() {
     opts.yaxis.min = -50;
     opts.yaxis.max = 50;
     opts.title = "Relative cost";
+
     var monthlyPlusMinusGraph = document.getElementById("monthlyPlusMinusGraph");
     console.log("Drawing plus minus chart...");
     var total_cost_graph = Flotr.draw(monthlyPlusMinusGraph, rel_cost, opts);
