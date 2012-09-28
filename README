@@ -1,0 +1,44 @@
+Abstract
+--------
+
+This is a Smartmeter frontend in javascript. It uses a rrd (round robin db) file as backend.
+For details about round robin databases see http://oss.oetiker.ch/rrdtool/
+
+This project uses code from various sources, mainly javascriptrrd to access the rrd-file
+and flotr2 to draw the graphs.
+
+
+License
+-------
+
+This project is licensed under the LGPL.
+All included libraries are subject to their respective licenses.
+
+
+Getting started
+---------------
+
+1. Create the rrd file like this:
+
+$ rrdtool create smartmeter.rrd --start 1337212800 --step 60 \
+				DS:counter1:ABSOLUTE:120:0:100000 \
+				DS:counter2:ABSOLUTE:120:0:100000 \
+				DS:counter3:ABSOLUTE:120:0:100000 \
+				DS:lost:ABSOLUTE:120:0:100000 \
+				RRA:AVERAGE:0.5:1:2880 \
+				RRA:MIN:0.5:1:2880 \
+				RRA:MAX:0.5:1:2880 \
+				RRA:AVERAGE:0.5:5:4320 \
+				RRA:MIN:0.5:5:4320 \
+				RRA:MAX:0.5:5:4320 \
+				RRA:AVERAGE:0.5:60:4320 \
+				RRA:MIN:0.5:60:4320 \
+				RRA:MAX:0.5:60:4320 \
+				RRA:AVERAGE:0.5:360:3650 \
+				RRA:MIN:0.5:360:3650 \
+				RRA:MAX:0.5:360:3650
+
+2. put some data into the rrd file like this:
+
+$ rrdtool update smartmeter.rrd N:1:2:3:4
+
