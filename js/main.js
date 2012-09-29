@@ -26,6 +26,24 @@ var counter_reference = {
 };
 var rrd_file = "/sm/data/smartmeter.rrd";
 
+var lang = "en";
+var strings = {
+    en : {
+        last_day : "Last Day:",
+        last_week : "Last Week:",
+        last_month : "Last Month:",
+        sel_counter1 : "Selection Counter 1",
+        sel_counter2 : "Selection Counter 2",
+        sel_counter3 : "Selection Counter 3",
+        sel_lost : "Selection Lost",
+        sel_total : "Selection Total",
+    },
+    de : {
+        last_day : "Letzter Tag:",
+        last_week : "Letzte Woche:",
+        last_month : "Letzter Monat:",
+    },
+};
 
 // various options
 
@@ -216,14 +234,26 @@ function getSeriesAverage(seriesData, from, to) {
         sum = values.reduce(function(previousValue, currentValue) {
             return previousValue+currentValue;
         });
-    return sum/values.length;
+    return sum / values.length;
 }
 
 function getSeriesTotalConsumption(seriesData, from, to) {
+    if (!from) {
+        from = seriesData[seriesData.length - 1][0];
+    }
+    if (!to) {
+        to = seriesData[0][0];
+    }
+    if (from > to) {
+        var tmp = to;
+        to = from;
+        from = tmp;
+    }
+    console.log("avg data: from: " + from + ", to: " + to);
     var duration = to - from;
     var avg = getSeriesAverage(seriesData, from, to);
 
-    return avg*duration / 3600;
+    return avg * duration / 3600;
 }
 
 function get_next_month(ts) {
@@ -255,8 +285,25 @@ function truncate_empty_space(array) {
     return newArray;
 }
 
+function write_tr(series, from, to, string) {
+    var oTr=document.getElementById(string);
+    var avg = parseFloat(getSeriesAverage(series, from, to));
+    var cons = parseFloat(getSeriesTotalConsumption(series, from, to) / 1000);
+    var cost = cons * kWh_cost;
+    oTr.innerHTML =
+        "<td>" + strings[(lang)][(string)] + "</td>" +
+        "<td align=\"right\">" + avg.toFixed(0) + " W</td>" +
+        "<td align=\"right\">" + cons.toFixed(1) + " kWh</td>" +
+        "<td align=\"right\">" + cost.toFixed(2) + " &euro;</td>";
+}
 
 function update_table(min, max) {
+    write_tr(counters.counter1.data, min, max, "sel_counter1");
+    write_tr(counters.counter2.data, min, max, "sel_counter2");
+    write_tr(counters.counter3.data, min, max, "sel_counter3");
+    write_tr(counters.lost.data, min, max, "sel_lost");
+    write_tr(counters.total.data, min, max, "sel_total");
+/*
     var oAvgTot=document.getElementById("sel_total_avg");
     oAvgTot.innerHTML = Math.round(getSeriesAverage(counters.total.data, min, max)) + " W";
 
@@ -279,6 +326,7 @@ function update_table(min, max) {
     var oTotCost=document.getElementById("sel_total_cost");
     var cost = parseFloat(getSeriesTotalConsumption(counters.total.data, min, max) / 1000 * kWh_cost);
     oTotCost.innerHTML = cost.toFixed(2) + " &euro;";
+*/
 }
 
 function draw_graph(container) {
@@ -477,8 +525,10 @@ function draw_consumption_graphs() {
     
 
     // get_next_month muss get_next_day_week_month_year werden, damit dass hier funktioniert!
+/*
     oSelRRA=document.getElementById("select_consumption_rra");
     rraIdx=oSelRRA.options[oSelRRA.selectedIndex].value;
+*/
     if (!rraIdx) rraIdx = 6;
 
     for (var dsIdx = 0; dsIdx < 4; dsIdx++) {
@@ -537,6 +587,11 @@ function draw_consumption_graphs() {
     var monthlyPlusMinusGraph = document.getElementById("monthlyPlusMinusGraph");
     console.log("Drawing plus minus chart...");
     var total_cost_graph = Flotr.draw(monthlyPlusMinusGraph, rel_cost, opts);
+
+    // update table
+    write_tr(total, last_update - (3600 * 24), last_update, "last_day");
+    write_tr(total, last_update - (3600 * 24 * 7), last_update, "last_week");
+    write_tr(total, last_update - (3600 * 24 * 30), last_update, "last_month");
 
 }
 

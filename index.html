@@ -40,17 +40,12 @@
     <body>
         <div class="row" id="masterGraph"></div>
         <div class="row">
-            <div class="span4">
+            <div class="span6">
 
                 <table id="infotable" border=1>
-                    <tr><td colspan="2">
-                        <select id="select_rra" onchange="prepare_master_graph()">
-                            <option value="0" selected/>2 Days (1 min)</option>
-                            <option value="3"/>2 Weeks (5 min)</option>
-                            <option value="6"/>6 Months (30 min)</option>
-                            <option value="9"/>2 Years (6 hours)</option>
-                        </select>
-                    </td></tr>
+<!--
+                    <tr>
+                    </tr>
 
                     <tr><td colspan="2">
                         <select id="select_consumption_rra" onchange="draw_consumption_graphs()">
@@ -59,10 +54,30 @@
                             <option value="3"/>Daily consumption (2 weeks)</option>
                         </select>
                     </td></tr>
+-->
 
-                    <tr><td>Last Day Average:</td><td id="last_day_avg" align="right"></td></tr>
-                    <tr><td>Last Week Average:</td><td id="last_week_avg" align="right"></td></tr>
-                    <tr><td>Last month Average:</td><td id="last_month_avg" align="right"></td></tr>
+                    <tr>
+                        <td>
+                            <select id="select_rra" onchange="prepare_master_graph()">
+                                <option value="0" selected/>2 Days (1 min)</option>
+                                <option value="3"/>2 Weeks (5 min)</option>
+                                <option value="6"/>6 Months (30 min)</option>
+                                <option value="9"/>2 Years (6 hours)</option>
+                            </select>
+                        </td>
+                        <th>Average</th>
+                        <th>Total</th>
+                        <th>Cost</th>
+                    </tr>
+                    <tr id="last_day"></tr>
+                    <tr id="last_week"></tr>
+                    <tr id="last_month"></tr>
+                    <tr id="sel_counter1"></tr>
+                    <tr id="sel_counter2"></tr>
+                    <tr id="sel_counter3"></tr>
+                    <tr id="sel_lost"></tr>
+                    <tr id="sel_total"></tr>
+<!--
                     <tr><td>Selection Total Average:</td><td id="sel_total_avg" align="right"></td></tr>
                     <tr><td>Selection Counter 1 Average:</td><td id="sel_counter1_avg" align="right"></td></tr>
                     <tr><td>Selection Counter 2 Average:</td><td id="sel_counter2_avg" align="right"></td></tr>
@@ -70,6 +85,7 @@
                     <tr><td>Selection Lost Average:</td><td id="sel_lost_avg" align="right"></td></tr>
                     <tr><td>Selection Total Consumption:</td><td id="sel_total_consumption" align="right"></td></tr>
                     <tr><td>Selection Cost:</td><td id="sel_total_cost" align="right"></td></tr>
+-->
                 </table>
             </div>
 
