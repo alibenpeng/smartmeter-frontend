@@ -2,46 +2,35 @@
 // main options
 var kWh_cost = 0.219;
 var kWh_paid = 4262;
-var counter_reference = {
-    counter1 : {
-        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
-        value : 0, // zaehlerstand..
-    },
-    counter2 : {
-        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
-        value : 0, // zaehlerstand..
-    },
-    counter3 : {
-        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
-        value : 0, // zaehlerstand..
-    },
-    lost : {
-        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
-        value : 0, // muss null sein, weil gabs vorher nicht..
-    },
-    total : {
-        timestamp : 1349042400, // 1.10.2012, 00:00 uhr
-        value : 0, // der im keller..
-    },
-};
 var rrd_file = "/sm/data/smartmeter.rrd";
 
-var lang = "en";
+var lang = "de";
 var strings = {
     en : {
-        last_day : "Last Day:",
-        last_week : "Last Week:",
-        last_month : "Last Month:",
-        sel_counter1 : "Selection Counter 1",
-        sel_counter2 : "Selection Counter 2",
-        sel_counter3 : "Selection Counter 3",
-        sel_lost : "Selection Lost",
-        sel_total : "Selection Total",
+        last_day : "Last Day",
+        last_week : "Last Week",
+        last_month : "Last Month",
+        counter1 : "Counter 1",
+        counter2 : "Counter 2",
+        counter3 : "Counter 3",
+        lost : "Lost",
+        total : "Total",
+        absolute_costs : "Absolute costs",
+        relative_costs : "Relative costs",
+        power_consumption : "Power consumption",
     },
     de : {
-        last_day : "Letzter Tag:",
-        last_week : "Letzte Woche:",
-        last_month : "Letzter Monat:",
+        last_day : "Letzter Tag",
+        last_week : "Letzte Woche",
+        last_month : "Letzter Monat",
+        counter1 : "Z&auml;hler 1",
+        counter2 : "Z&auml;hler 2",
+        counter3 : "Z&auml;hler 3",
+        lost : "Verloren",
+        total : "Gesamt",
+        absolute_costs : "Absolute Kosten",
+        relative_costs : "Relative Kosten",
+        power_consumption : "Stromverbrauch",
     },
 };
 
@@ -82,8 +71,8 @@ var cMouseOpts = {
 
 var cMainGraphOpts = {
     mouse : cMouseOpts,
-    HtmlText : false,
-    title : 'Average Consumption',
+    HtmlText : true,
+    title : strings[(lang)][("power_consumption")],
     xaxis : cXaxisOpts,
     yaxis : {
         autoscale : true,
@@ -110,7 +99,9 @@ var cMainGraphOpts = {
 
 var counters = {
     total: {
-        label: 'Total',
+        label: strings[(lang)][("total")],
+        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
+        ref_val : 11501.33, // der im keller..
         color: "#dddddd",
         lines: {
             show: true,
@@ -121,27 +112,35 @@ var counters = {
         },
         data: []
     },
-    lost: {
-        label: 'Lost',
-        color: "#ff5555",
-        bars : cBarOpts,
-        data: []
-    },
-    counter3: {
-        label: 'Counter 1',
-        color: "#5555ff",
-        bars : cBarOpts,
-        data: []
-    },
     counter1: {
-        label: 'Counter 2',
+        label: strings[(lang)][("counter1")],
+        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
+        ref_val : 270.06, // zaehlerstand..
         color: "#55ff55",
         bars : cBarOpts,
         data: []
     },
     counter2: {
-        label: 'Counter 3',
+        label: strings[(lang)][("counter2")],
+        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
+        ref_val : 497.82, // zaehlerstand..
         color: "#eeee44",
+        bars : cBarOpts,
+        data: []
+    },
+    counter3: {
+        label: strings[(lang)][("counter3")],
+        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
+        ref_val : 1206.72, // zaehlerstand..
+        color: "#5555ff",
+        bars : cBarOpts,
+        data: []
+    },
+    lost: {
+        label: strings[(lang)][("lost")],
+        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
+        ref_val : 0, // muss null sein, weil gabs vorher nicht..
+        color: "#ff5555",
         bars : cBarOpts,
         data: []
     },
@@ -286,23 +285,33 @@ function truncate_empty_space(array) {
 }
 
 function write_tr(series, from, to, string) {
+    console.log("string: " + string);
+    console.log("counter1 absolute: " + counters.counter1.absolute);
+    var tooltip_start = '';
+    var tooltip_end = '';
+    if (counters[(string)]) {
+        tooltip_start = "<div rel=\"tooltip\" title=\"" + counters[(string)].absolute.toFixed(2) + "\">",
+        tooltip_end = "</div>";
+    }
     var oTr=document.getElementById(string);
     var avg = parseFloat(getSeriesAverage(series, from, to));
     var cons = parseFloat(getSeriesTotalConsumption(series, from, to) / 1000);
     var cost = cons * kWh_cost;
     oTr.innerHTML =
-        "<td>" + strings[(lang)][(string)] + "</td>" +
+        "<td>" + tooltip_start + strings[(lang)][(string)] + tooltip_end + "</td>" +
         "<td align=\"right\">" + avg.toFixed(0) + " W</td>" +
         "<td align=\"right\">" + cons.toFixed(1) + " kWh</td>" +
-        "<td align=\"right\">" + cost.toFixed(2) + " &euro;</td>";
+        "<td align=\"right\">" + cost.toFixed(2) + " &euro;</td>" +
+        tooltip_end;
 }
 
 function update_table(min, max) {
-    write_tr(counters.counter1.data, min, max, "sel_counter1");
-    write_tr(counters.counter2.data, min, max, "sel_counter2");
-    write_tr(counters.counter3.data, min, max, "sel_counter3");
-    write_tr(counters.lost.data, min, max, "sel_lost");
-    write_tr(counters.total.data, min, max, "sel_total");
+    
+    write_tr(counters.counter1.data, min, max, "counter1");
+    write_tr(counters.counter2.data, min, max, "counter2");
+    write_tr(counters.counter3.data, min, max, "counter3");
+    write_tr(counters.lost.data, min, max, "lost");
+    write_tr(counters.total.data, min, max, "total");
 /*
     var oAvgTot=document.getElementById("sel_total_avg");
     oAvgTot.innerHTML = Math.round(getSeriesAverage(counters.total.data, min, max)) + " W";
@@ -469,13 +478,19 @@ function prepare_master_graph() {
 }
 
 function draw_consumption_graphs() {
-    var total = [];
+    var myCounters = {
+        counter1 : [],
+        counter2 : [],
+        counter3 : [],
+        lost     : [],
+        total    : [],
+    };
     var total_cost = { data: [], bars : { fillColor : { colors : [ '#00ff00', '#0000ff' ], start : 'top', end : 'bottom' } } };
     var rel_cost = { data: [], bars : { fillColor : { colors : [ '#00ff00', '#0000ff' ], start : 'top', end : 'bottom' } } };
     //var rel_cost = { data: [] };
     var rraIdx = 6;
     var opts = {
-        title : 'Absolute cost',
+        title : strings[(lang)][("absolute_costs")],
         bars : {
             show : true,
             barWidth : 0.9,
@@ -544,30 +559,35 @@ function draw_consumption_graphs() {
         for (var i = 0; i < rows; i++) {
             var el = rra.getElFast(i,dsIdx);
             if (isNaN(el)) { el = 0; }
-            if (total[(i)]) {
-                total[(i)][1] += el * 1800;
+
+            myCounters[(ds_name)].push( [ ts, el * 1800 ] );
+
+            if (myCounters[("total")][(i)]) {
+                myCounters[("total")][(i)][1] += el * 1800;
             } else {
-                total.push( [ ts, el * 1800 ] );
+                myCounters[("total")].push( [ ts, el * 1800 ] );
             }
             ts += (step);
         }
+        counters[(ds_name)].absolute = getSeriesTotalConsumption(myCounters[(ds_name)], counters[(ds_name)].ref_ts, last_update) / 1000 + counters[(ds_name)].ref_val;
     }
+    counters[("total")].absolute = getSeriesTotalConsumption(myCounters[("total")], counters[("total")].ref_ts, last_update) / 1000 + counters[("total")].ref_val;
 
-    total = truncate_empty_space(total);
+    myCounters[("total")] = truncate_empty_space(myCounters[("total")]);
     // calculate monthly consumption
-    var next_month_start = get_next_month(total[0][0]);
-    var this_month_start = total[0][0];
-    $.each(total, function(idx, obj) {
-        if (obj[0] > next_month_start || idx === total.length - 1) {
+    var next_month_start = get_next_month(myCounters[("total")][0][0]);
+    var this_month_start = myCounters[("total")][0][0];
+    $.each(myCounters[("total")], function(idx, obj) {
+        if (obj[0] > next_month_start || idx === myCounters[("total")].length - 1) {
             var xVal = new Date((this_month_start) * 1000);
-            console.log("pushing " + Math.round(getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000));
+            console.log("pushing " + Math.round(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000));
             total_cost.data.push([
                 (xVal.getMonth()),
-                Math.round(getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000),
+                Math.round(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000),
             ]);
             rel_cost.data.push([
                 (xVal.getMonth()),
-                Math.round((getSeriesTotalConsumption(total, this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12)),
+                Math.round((getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12)),
             ]);
             this_month_start = next_month_start;
             next_month_start = get_next_month(next_month_start);
@@ -582,16 +602,18 @@ function draw_consumption_graphs() {
     // draw the relaive cost graph
     opts.yaxis.min = -50;
     opts.yaxis.max = 50;
-    opts.title = "Relative cost";
+    opts.title = strings[(lang)][("relative_costs")];
 
     var monthlyPlusMinusGraph = document.getElementById("monthlyPlusMinusGraph");
     console.log("Drawing plus minus chart...");
     var total_cost_graph = Flotr.draw(monthlyPlusMinusGraph, rel_cost, opts);
 
     // update table
-    write_tr(total, last_update - (3600 * 24), last_update, "last_day");
-    write_tr(total, last_update - (3600 * 24 * 7), last_update, "last_week");
-    write_tr(total, last_update - (3600 * 24 * 30), last_update, "last_month");
+    write_tr(myCounters[("total")], last_update - (3600 * 24), last_update, "last_day");
+    write_tr(myCounters[("total")], last_update - (3600 * 24 * 7), last_update, "last_week");
+    write_tr(myCounters[("total")], last_update - (3600 * 24 * 30), last_update, "last_month");
+
+    return true;
 
 }
 
@@ -609,9 +631,7 @@ function update_fname_handler(bf) {
     }
     if (i_rrd_data!=undefined) {
         rrd_data = i_rrd_data;
-        prepare_master_graph();
-        draw_consumption_graphs();
-        //draw_plusminus_graph();
+        draw_consumption_graphs() && prepare_master_graph();
     }
 }
 
