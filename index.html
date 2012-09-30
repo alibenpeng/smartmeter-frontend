@@ -8,8 +8,8 @@
     <script type="text/javascript" src="js/lib/flotr2.min.js"></script>
     <script type="text/javascript" src="js/lib/spin.min.js"></script>
     <head>
+        <meta name="http-equiv" content="Content-type: text/html; charset=UTF-8"/>
         <link href="css/bootstrap.min.css" rel="stylesheet">
-        <meta name="http-equiv" content="Content-type: text/html; charset=UTF-8"/>)
 
 
         <style type="text/css">
@@ -59,18 +59,7 @@
                     </td></tr>
 -->
 
-                    <tr>
-                        <td>
-                            <select id="select_rra" onchange="prepare_master_graph()">
-                                <option value="0" selected/>2 Days (1 min)</option>
-                                <option value="3"/>2 Weeks (5 min)</option>
-                                <option value="6"/>6 Months (30 min)</option>
-                                <option value="9"/>2 Years (6 hours)</option>
-                            </select>
-                        </td>
-                        <th>Average</th>
-                        <th>Total</th>
-                        <th>Cost</th>
+                    <tr id="header">
                     </tr>
                     <tr id="last_day"></tr>
                     <tr id="last_week"></tr>
@@ -91,6 +80,7 @@
             </div>
         </div>
 
+        <script type="text/javascript" src="js/options.js" charset="utf-8"></script>
         <script type="text/javascript" src="js/main.js" charset="utf-8"></script>
         <script src="js/lib/bootstrap.min.js"></script>
 

@@ -1,169 +1,3 @@
-//
-// main options
-var kWh_cost = 0.219;
-var kWh_paid = 4262;
-var rrd_file = "/sm/data/smartmeter.rrd";
-
-var lang = "de";
-var strings = {
-    en : {
-        last_day : "Last Day",
-        last_week : "Last Week",
-        last_month : "Last Month",
-        counter1 : "Counter 1",
-        counter2 : "Counter 2",
-        counter3 : "Counter 3",
-        lost : "Lost",
-        total : "Total",
-        absolute_costs : "Absolute costs",
-        relative_costs : "Relative costs",
-        power_consumption : "Power consumption",
-    },
-    de : {
-        last_day : "Letzter Tag",
-        last_week : "Letzte Woche",
-        last_month : "Letzter Monat",
-        counter1 : "Zähler 1",
-        counter2 : "Z&auml;hler 2",
-        counter3 : "Z&auml;hler 3",
-        lost : "Verloren",
-        total : "Gesamt",
-        absolute_costs : "Absolute Kosten",
-        relative_costs : "Relative Kosten",
-        power_consumption : "Stromverbrauch",
-    },
-};
-
-// various options
-
-var rrd_data, graph, x, o;
-
-var cXaxisOpts = {
-    mode : 'time', 
-    timeMode : 'local',
-    timeUnit : 'second',
-    labelsAngle : 0,
-    noTicks : 10,
-    tickDecimals : 0,
-};
-
-var cBarOpts = {
-    show : true,
-    stacked : true,
-    horizontal : false,
-    barWidth : undefined,
-    lineWidth : 1,
-    shadowSize : 0,
-    fillOpacity : 0.8,
-};
-
-var cMouseOpts = {
-    track           : true, // Enable mouse tracking
-    trackAll        : false,
-    trackY          : false,
-    lineColor       : null,
-    relative        : false,
-    position        : 'ne',
-    sensibility     : 5,
-    trackDecimals   : 0,
-    trackFormatter  : function (o) { return tooltipFormatter(o.x, o.y, o.series.label); }
-};
-
-var cMainGraphOpts = {
-    mouse : cMouseOpts,
-    HtmlText : false,
-    title : strings[(lang)][("power_consumption")],
-    xaxis : cXaxisOpts,
-    yaxis : {
-        autoscale : true,
-        noTicks : 2,
-        tickFormatter : function(val, axisOpts) {return yTickFormatter(val, axisOpts);},
-    },
-        selection : {
-        mode : 'xy'
-    },
-    legend : {
-        backgroundColor : '#ccc' // Light blue 
-    },
-    grid : {
-        tickColor : '#666',
-        verticalLines : false,
-        horizontalLines : true,
-        backgroundColor : {
-            colors : [[0,'#666'], [1,'#333']],
-            start : 'top',
-            end : 'bottom'
-        },
-    },
-};
-
-var counters = {
-    total: {
-        label: strings[(lang)][("total")],
-        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
-        ref_val : 11501.33, // der im keller..
-        color: "#dddddd",
-        lines: {
-            show: true,
-            lineWidth : 2,
-            stacked: false,
-            fill: true,
-            fillOpacity : 0.3,
-        },
-        data: []
-    },
-    counter1: {
-        label: strings[(lang)][("counter1")],
-        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
-        ref_val : 270.06, // zaehlerstand..
-        color: "#55ff55",
-        bars : cBarOpts,
-        data: []
-    },
-    counter2: {
-        label: strings[(lang)][("counter2")],
-        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
-        ref_val : 497.82, // zaehlerstand..
-        color: "#eeee44",
-        bars : cBarOpts,
-        data: []
-    },
-    counter3: {
-        label: strings[(lang)][("counter3")],
-        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
-        ref_val : 1206.72, // zaehlerstand..
-        color: "#5555ff",
-        bars : cBarOpts,
-        data: []
-    },
-    lost: {
-        label: strings[(lang)][("lost")],
-        ref_ts : 1348997966, // 1.10.2012, 00:00 uhr
-        ref_val : 0, // muss null sein, weil gabs vorher nicht..
-        color: "#ff5555",
-        bars : cBarOpts,
-        data: []
-    },
-};
-
-var cSpinnerOpts = {
-    lines: 9, // The number of lines to draw
-    length: 7, // The length of each line
-    width: 4, // The line thickness
-    radius: 10, // The radius of the inner circle
-    corners: 1, // Corner roundness (0..1)
-    rotate: 0, // The rotation offset
-    color: '#000', // #rgb or #rrggbb
-    speed: 1, // Rounds per second
-    trail: 60, // Afterglow percentage
-    shadow: false, // Whether to render a shadow
-    hwaccel: false, // Whether to use hardware acceleration
-    className: 'spinner', // The CSS class to assign to the spinner
-    zIndex: 2e9, // The z-index (defaults to 2000000000)
-    top: 'auto', // Top position relative to parent in px
-    left: 'auto' // Left position relative to parent in px
-};
-
 
 // helper functions
 
@@ -290,7 +124,7 @@ function write_tr(series, from, to, string) {
     var tooltip_start = '';
     var tooltip_end = '';
     if (counters[(string)]) {
-        tooltip_start = "<div rel=\"tooltip\" title=\"" + counters[(string)].absolute.toFixed(2) + "\">",
+        tooltip_start = "<div rel=\"tooltip\" title=\"" + strings[(lang)][("counter_reading")] + ":\n" + counters[(string)].absolute.toFixed(2) + " kWh\">",
         tooltip_end = "</div>";
     }
     var oTr=document.getElementById(string);
@@ -301,7 +135,7 @@ function write_tr(series, from, to, string) {
         "<td>" + tooltip_start + strings[(lang)][(string)] + tooltip_end + "</td>" +
         "<td align=\"right\">" + avg.toFixed(0) + " W</td>" +
         "<td align=\"right\">" + cons.toFixed(1) + " kWh</td>" +
-        "<td align=\"right\">" + cost.toFixed(2) + " &euro;</td>" +
+        "<td align=\"right\">" + cost.toFixed(2) + " " + strings[(lang)][("currency")] + "</td>" +
         tooltip_end;
 }
 
@@ -312,30 +146,6 @@ function update_table(min, max) {
     write_tr(counters.counter3.data, min, max, "counter3");
     write_tr(counters.lost.data, min, max, "lost");
     write_tr(counters.total.data, min, max, "total");
-/*
-    var oAvgTot=document.getElementById("sel_total_avg");
-    oAvgTot.innerHTML = Math.round(getSeriesAverage(counters.total.data, min, max)) + " W";
-
-    var oAvgC1=document.getElementById("sel_counter1_avg");
-    oAvgC1.innerHTML = Math.round(getSeriesAverage(counters.counter1.data, min, max)) + " W";
-
-    var oAvgC2=document.getElementById("sel_counter2_avg");
-    oAvgC2.innerHTML = Math.round(getSeriesAverage(counters.counter2.data, min, max)) + " W";
-
-    var oAvgC3=document.getElementById("sel_counter3_avg");
-    oAvgC3.innerHTML = Math.round(getSeriesAverage(counters.counter3.data, min, max)) + " W";
-
-    var oAvgLost=document.getElementById("sel_lost_avg");
-    oAvgLost.innerHTML = Math.round(getSeriesAverage(counters.lost.data, min, max)) + " W";
-
-    var oTotCons=document.getElementById("sel_total_consumption");
-    var consumption = getSeriesTotalConsumption(counters.total.data, min, max) / 1000;
-    oTotCons.innerHTML =consumption.toFixed(3) + " kWh";
-
-    var oTotCost=document.getElementById("sel_total_cost");
-    var cost = parseFloat(getSeriesTotalConsumption(counters.total.data, min, max) / 1000 * kWh_cost);
-    oTotCost.innerHTML = cost.toFixed(2) + " &euro;";
-*/
 }
 
 function draw_graph(container) {
@@ -455,7 +265,6 @@ function prepare_master_graph() {
     var maxLength;
     var tempTotal = [];
     $.each(counter_names.reverse(), function(idx, counterName) {
-        console.log("ficken: " + idx);
         if (idx === 0) {
             maxLength = counters[(counterName)].data.length;
             tempTotal = counters[(counterName)].data.reverse();
@@ -499,10 +308,12 @@ function draw_consumption_graphs() {
         bars : cBarOpts,
 */
         yaxis : {
-            tickFormatter : function(val, axisOpts) { return val + " &euro;" },
+            tickFormatter : function(val, axisOpts) { return val + " " + strings[(lang)][("currency")] },
             min : 0,
         },
         xaxis : {
+
+// this does not work for some reason, hence the array below
 /*
                 mode : 'time',
                 timeMode : 'local',
@@ -530,7 +341,7 @@ function draw_consumption_graphs() {
         mouse : cMouseOpts,
     };
 
-    opts.mouse.trackFormatter = function(o) {return o.y + " &euro;" },
+    opts.mouse.trackFormatter = function(fnord) {return fnord.y + " " + strings[(lang)][("currency")] },
     opts.xaxis.tickDecimals = 0;
     //opts.bars.barWidth = 0.9;
     //opts.bars.centered = true;
@@ -539,7 +350,7 @@ function draw_consumption_graphs() {
     opts.bars.fillColor = { colors : [ '#FF0000', '#00FF00' ] };
     
 
-    // get_next_month muss get_next_day_week_month_year werden, damit dass hier funktioniert!
+    // get_next_month needs to become get_next_day_week_month_year for this to work
 /*
     oSelRRA=document.getElementById("select_consumption_rra");
     rraIdx=oSelRRA.options[oSelRRA.selectedIndex].value;
@@ -579,15 +390,21 @@ function draw_consumption_graphs() {
     var this_month_start = myCounters[("total")][0][0];
     $.each(myCounters[("total")], function(idx, obj) {
         if (obj[0] > next_month_start || idx === myCounters[("total")].length - 1) {
+
             var xVal = new Date((this_month_start) * 1000);
-            console.log("pushing " + Math.round(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000));
+
+            var yVal = parseFloat(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000);
+            console.log("pushing " + yVal.toFixed);
             total_cost.data.push([
                 (xVal.getMonth()),
-                Math.round(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000),
+                (yVal.toFixed(2)),
             ]);
+
+            yVal = parseFloat((getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12));
+
             rel_cost.data.push([
                 (xVal.getMonth()),
-                Math.round((getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12)),
+                (yVal.toFixed(2)),
             ]);
             this_month_start = next_month_start;
             next_month_start = get_next_month(next_month_start);
@@ -648,5 +465,19 @@ try {
     alert("Failed loading " + rrd_file + "\n" + err);
 }
 
+// write the table header
+var oTh=document.getElementById("header");
+oTh.innerHTML = 
+    '<td>' +
+        '<select id="select_rra" onchange="prepare_master_graph()">' +
+            '<option value="0" selected/>' + strings[(lang)][("two_days")] + '</option>' +
+            '<option value="3"/>' + strings[(lang)][("two_weeks")] + '</option>' +
+            '<option value="6"/>' + strings[(lang)][("six_months")] + '</option>' +
+            '<option value="9"/>' + strings[(lang)][("two_years")] + '</option>' +
+        '</select>' +
+    '</td>' +
+    '<th>' + strings[(lang)][("average")] + '</th>' +
+    '<th>' + strings[(lang)][("consumption")] + '</th>' +
+    '<th>' + strings[(lang)][("costs")] + '</th>';
 
 // vim: expandtab sw=4 ts=4
