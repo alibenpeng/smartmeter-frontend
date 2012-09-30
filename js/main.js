@@ -23,7 +23,7 @@ var strings = {
         last_day : "Letzter Tag",
         last_week : "Letzte Woche",
         last_month : "Letzter Monat",
-        counter1 : "Z&auml;hler 1",
+        counter1 : "Zähler 1",
         counter2 : "Z&auml;hler 2",
         counter3 : "Z&auml;hler 3",
         lost : "Verloren",
@@ -71,7 +71,7 @@ var cMouseOpts = {
 
 var cMainGraphOpts = {
     mouse : cMouseOpts,
-    HtmlText : true,
+    HtmlText : false,
     title : strings[(lang)][("power_consumption")],
     xaxis : cXaxisOpts,
     yaxis : {
