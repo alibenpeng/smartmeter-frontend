@@ -18,6 +18,13 @@ This project is licensed under the LGPL.
 All included libraries are subject to their respective licenses.
 
 
+Installation
+------------
+
+Just put the directory some place your webserver can access and
+edit options.js to suit your needs.
+
+
 Getting started
 ---------------
 
@@ -41,16 +48,47 @@ $ rrdtool create smartmeter.rrd --start 1337212800 --step 60 \
 	RRA:MIN:0.5:360:3650 \
 	RRA:MAX:0.5:360:3650
 
+This will give you a rrd file with 4 data sources, "counter1",
+"counter2", "counter3", and a counter named "lost". It will
+store the data in 4 different resolutions, the finer the
+resolution the shorter the storage period.
+
 2. put some data into the rrd file like this:
 
 $ rrdtool update smartmeter.rrd N:1:2:3:4
+
+The part at the end is the actual data and means that you
+wrote a value of 1 to the first data source, i.e. "counter1",
+a 2 to the second, and so on. The "N" means "now" and could
+also be a unix timestamp.
+
+3. repeat this a few times (maybe with different values).
+
+4. Navigate your browser to index.html
+
+5. ???
+
+6. Profit
 
 
 Hardware
 --------
 
 To have this software do anything usefull you need some
-hardware to fill the rrd-file. 
+hardware to fill the rrd-file.
+
+The most common ways to do that are to either use electronic
+power meters that generate some sort of data (there are
+different ones out there) or to track the rotation of the
+disc in a mechanical counter. Sensors to do that can be
+homemade or bought online.
+
+Basically you need to collect information about your
+power consumption and feed it to the rrd. How you do it
+is up to you, there are lots of ways. You could even go
+and insert the data by hand, like in the example above,
+but where would be the fun in that?
+
 
 Right now the code is built around three counters that
 generate 2000 impulses per consumed kWh. These counters
