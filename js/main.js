@@ -237,18 +237,14 @@ function prepare_master_graph() {
 
         
         for (var i = 0; i < f_rows; i++) {
-            var el = rra.getElFast(i,dsIdx);
-            //if (i >= rows - 10) console.log(ds_name + ": " + ts + ": " + el * 1800);
-            //if (!isNaN(el)) firstValueSeen = true;
+            var el = rra.getEl(i,dsIdx);
             if (isNaN(el)) { el = 0; }
-            //if (firstValueSeen) {
                 counters[(ds_name)].data.push( [ ts, el * 1800 ] );
                 if (counters.total.data[(i)]) {
                     counters.total.data[(i)][1] += el * 1800;
                 } else {
                     counters.total.data.push( [ ts, el * 1800 ] );
                 }
-            //}
             ts += (step);
         }
     }
@@ -368,7 +364,7 @@ function draw_consumption_graphs() {
 
         
         for (var i = 0; i < rows; i++) {
-            var el = rra.getElFast(i,dsIdx);
+            var el = rra.getEl(i,dsIdx);
             if (isNaN(el)) { el = 0; }
 
             myCounters[(ds_name)].push( [ ts, el * 1800 ] );
