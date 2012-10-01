@@ -1,11 +1,14 @@
 Abstract
 --------
 
-This is a Smartmeter frontend in javascript. It uses a rrd (round robin db) file as backend.
-For details about round robin databases see http://oss.oetiker.ch/rrdtool/
+This is a Smartmeter frontend in javascript. It uses a
+rrd (round robin db) file as backend.
+For details about round robin databases see
+http://oss.oetiker.ch/rrdtool/
 
-This project uses code from various sources, mainly javascriptrrd to access the rrd-file
-and flotr2 to draw the graphs.
+This project uses code from various sources, mainly
+javascriptrrd to access the rrd-file and flotr2 to draw
+the graphs.
 
 
 License
@@ -41,4 +44,18 @@ $ rrdtool create smartmeter.rrd --start 1337212800 --step 60 \
 2. put some data into the rrd file like this:
 
 $ rrdtool update smartmeter.rrd N:1:2:3:4
+
+
+Hardware
+--------
+
+To have this software do anything usefull you need some
+hardware to fill the rrd-file. 
+
+Right now the code is built around three counters that
+generate 2000 impulses per consumed kWh. These counters
+are very common in europe and fairly cheap. The hardware
+used in this project is described in more detail here:
+
+http://testblog.arles-electrique.de/2012/08/my-diy-smartmeter.html
 
