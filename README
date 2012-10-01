@@ -18,6 +18,12 @@ This project is licensed under the LGPL.
 All included libraries are subject to their respective licenses.
 
 
+Dependencies
+------------
+
+RRDTool and a webserver
+
+
 Installation
 ------------
 
