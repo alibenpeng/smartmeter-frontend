@@ -84,9 +84,22 @@ function getSeriesTotalConsumption(seriesData, from, to) {
     }
     console.log("avg data: from: " + from + ", to: " + to);
     var duration = to - from;
+    console.log("duration: " + duration);
     var avg = getSeriesAverage(seriesData, from, to);
 
     return avg * duration / 3600;
+}
+
+function get_total(seriesData, from, to) {
+    var sum = 0;
+    for (i = 0; i < seriesData.length; i++) {
+        var rec = seriesData[i];
+        if(rec[0] < from || rec[0] > to) { continue; }
+
+        //console.log("adding " + rec + " to sum: " + sum);
+        sum += rec[1];
+    }
+    return sum;
 }
 
 function get_next_month(ts) {
@@ -120,7 +133,7 @@ function truncate_empty_space(array) {
 
 function write_tr(series, from, to, string) {
     console.log("string: " + string);
-    console.log("counter1 absolute: " + counters.counter1.absolute);
+    //console.log("counter1 absolute: " + counters.counter1.absolute);
     var tooltip_start = '';
     var tooltip_end = '';
     if (counters[(string)]) {
@@ -206,6 +219,7 @@ function draw_graph(container) {
 function prepare_master_graph() {
 
     var f_rows;
+    var f_counter_names = [];
 
     oSelRRA=document.getElementById("select_rra");
     rraIdx=oSelRRA.options[oSelRRA.selectedIndex].value;
@@ -224,6 +238,9 @@ function prepare_master_graph() {
         var step = rra.getStep();
         var ts = (last_update - (step * rows));
 
+        // push ds name to f_counter_names array
+        f_counter_names.push(ds_name);
+
         // set barWidth according to step size
         cBarOpts.barWidth = step - (step/5);
 
@@ -238,12 +255,13 @@ function prepare_master_graph() {
         
         for (var i = 0; i < f_rows; i++) {
             var el = rra.getEl(i,dsIdx);
+            el = el * rrd_correction_factor;
             if (isNaN(el)) { el = 0; }
-                counters[(ds_name)].data.push( [ ts, el * 1800 ] );
+                counters[(ds_name)].data.push( [ ts, el ] );
                 if (counters.total.data[(i)]) {
-                    counters.total.data[(i)][1] += el * 1800;
+                    counters.total.data[(i)][1] += el ;
                 } else {
-                    counters.total.data.push( [ ts, el * 1800 ] );
+                    counters.total.data.push( [ ts, el ] );
                 }
             ts += (step);
         }
@@ -252,15 +270,15 @@ function prepare_master_graph() {
 
 
     // truncate empty beginnings of data series
-    var counter_names = [ "counter1", "counter2", "counter3", "lost", "total" ];
-    $.each(counter_names, function(idx, counterName) {
+    //var counter_names = [ "counter1", "counter2", "counter3", "lost", "total" ];
+    $.each(f_counter_names, function(idx, counterName) {
         counters[(counterName)].data = truncate_empty_space(counters[(counterName)].data);
     });
 
     // pad all arrays to the beginning of total or zoom wont work properly
     var maxLength;
     var tempTotal = [];
-    $.each(counter_names.reverse(), function(idx, counterName) {
+    $.each(f_counter_names.reverse(), function(idx, counterName) {
         if (idx === 0) {
             maxLength = counters[(counterName)].data.length;
             tempTotal = counters[(counterName)].data.reverse();
@@ -365,38 +383,45 @@ function draw_consumption_graphs() {
         
         for (var i = 0; i < rows; i++) {
             var el = rra.getEl(i,dsIdx);
+            el = el * rrd_correction_factor ;
+
             if (isNaN(el)) { el = 0; }
 
-            myCounters[(ds_name)].push( [ ts, el * 1800 ] );
+            myCounters[(ds_name)].push( [ ts, el ] );
 
             if (myCounters[("total")][(i)]) {
-                myCounters[("total")][(i)][1] += el * 1800;
+                myCounters[("total")][(i)][1] += el;
             } else {
-                myCounters[("total")].push( [ ts, el * 1800 ] );
+                myCounters[("total")].push( [ ts, el ] );
             }
             ts += (step);
         }
-        counters[(ds_name)].absolute = getSeriesTotalConsumption(myCounters[(ds_name)], counters[(ds_name)].ref_ts, last_update) / 1000 + counters[(ds_name)].ref_val;
+        console.log("getting total consumption for ds: " + ds_name);
+        counters[(ds_name)].absolute = get_total(myCounters[(ds_name)], counters[(ds_name)].ref_ts, last_update) / 1000 + counters[(ds_name)].ref_val;
     }
-    counters[("total")].absolute = getSeriesTotalConsumption(myCounters[("total")], counters[("total")].ref_ts, last_update) / 1000 + counters[("total")].ref_val;
+    console.log("getting total consumption for total");
+    counters[("total")].absolute = get_total(myCounters[("total")], counters[("total")].ref_ts, last_update) / 1000 + counters[("total")].ref_val;
 
-    myCounters[("total")] = truncate_empty_space(myCounters[("total")]);
+    //myCounters[("total")] = truncate_empty_space(myCounters[("total")]);
+
     // calculate monthly consumption
     var next_month_start = get_next_month(myCounters[("total")][0][0]);
     var this_month_start = myCounters[("total")][0][0];
+
     $.each(myCounters[("total")], function(idx, obj) {
         if (obj[0] > next_month_start || idx === myCounters[("total")].length - 1) {
 
             var xVal = new Date((this_month_start) * 1000);
 
-            var yVal = parseFloat(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000);
-            console.log("pushing " + yVal.toFixed);
+            var yVal = parseFloat(get_total(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000);
+            console.log("pushing " + yVal);
+
             total_cost.data.push([
                 (xVal.getMonth()),
                 (yVal.toFixed(2)),
             ]);
 
-            yVal = parseFloat((getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12));
+            yVal = parseFloat((get_total(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12));
 
             rel_cost.data.push([
                 (xVal.getMonth()),
@@ -413,8 +438,9 @@ function draw_consumption_graphs() {
     var total_cost_graph = Flotr.draw(monthlyConsumptionGraph, total_cost, opts);
 
     // draw the relaive cost graph
-    opts.yaxis.min = -50;
-    opts.yaxis.max = 50;
+    var monthly_payment = kWh_cost * kWh_paid / 12;
+    opts.yaxis.max = monthly_payment;
+    opts.yaxis.min = -monthly_payment;
     opts.title = strings[(lang)][("relative_costs")];
 
     var monthlyPlusMinusGraph = document.getElementById("monthlyPlusMinusGraph");

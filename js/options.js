@@ -4,6 +4,7 @@
 var kWh_cost = 0.219;
 var kWh_paid = 4262; // per year
 var rrd_file = "/sm/data/smartmeter.rrd";
+var rrd_correction_factor = 60 * 60 / 2; // 2000 pulses per kWh, stored every minute but internally treated as pulses per second by rrd
 
 // localized strings
 var lang = "de";
@@ -70,7 +71,7 @@ var counters = {
     total: {
         label: strings[(lang)][("total")],
         ref_val : 11501.33, // counter reading
-        ref_ts : 1348997966, // the time you took it
+        ref_ts : 1348977966, // the time you took it
         color: "#dddddd",
         lines: {
             show: true,
@@ -84,7 +85,7 @@ var counters = {
     counter1: {
         label: strings[(lang)][("counter1")],
         ref_val : 497.82, // counter reading
-        ref_ts : 1348997966, // the time you took it
+        ref_ts : 1348977966, // the time you took it
         color: "#55ff55",
         bars : cBarOpts,
         data: []
@@ -92,7 +93,7 @@ var counters = {
     counter2: {
         label: strings[(lang)][("counter2")],
         ref_val : 270.06, // counter reading
-        ref_ts : 1348997966, // the time you took it
+        ref_ts : 1348977966, // the time you took it
         color: "#eeee44",
         bars : cBarOpts,
         data: []
@@ -100,7 +101,7 @@ var counters = {
     counter3: {
         label: strings[(lang)][("counter3")],
         ref_val : 1206.72, // counter reading
-        ref_ts : 1348997966, // the time you took it
+        ref_ts : 1348977966, // the time you took it
         color: "#5555ff",
         bars : cBarOpts,
         data: []
@@ -108,7 +109,7 @@ var counters = {
     lost: {
         label: strings[(lang)][("lost")],
         ref_val : 0, // counter reading
-        ref_ts : 1348997966, // the time you took it
+        ref_ts : 1348977966, // the time you took it
         color: "#ff5555",
         bars : cBarOpts,
         data: []
