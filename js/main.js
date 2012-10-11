@@ -271,6 +271,7 @@ function prepare_master_graph() {
 
     // truncate empty beginnings of data series
     //var counter_names = [ "counter1", "counter2", "counter3", "lost", "total" ];
+/*
     $.each(f_counter_names, function(idx, counterName) {
         counters[(counterName)].data = truncate_empty_space(counters[(counterName)].data);
     });
@@ -292,6 +293,7 @@ function prepare_master_graph() {
             counters[(counterName)].data = tempArray.reverse();
         }
     });
+*/
 
     // draw the graph
     var masterGraph = document.getElementById("masterGraph");
