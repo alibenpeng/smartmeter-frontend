@@ -3,7 +3,7 @@
 
 var kWh_cost = 0.219;
 var kWh_paid = 4262; // per year
-var rrd_file = "/sm/data/smartmeter.rrd";
+var rrd_file = "/sm/data/smartmeter_rescue.rrd";
 var rrd_correction_factor = 60 * 60 / 2; // 2000 pulses per kWh, stored every minute but internally treated as pulses per second by rrd
 
 // localized strings
