@@ -1,4 +1,3 @@
-//foo
 // main options
 
 var kWh_cost = 0.219;
