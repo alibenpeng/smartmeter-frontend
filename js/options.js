@@ -1,4 +1,5 @@
 // main options
+// ggnarf
 
 var kWh_cost = 0.219;
 var kWh_paid = 4262; // per year
