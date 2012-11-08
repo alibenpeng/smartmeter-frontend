@@ -63,6 +63,8 @@ function regionMap(seriesData, from, to, fn) {
 }
 
 function getSeriesAverage(seriesData, from, to) {
+    console.log("from: " + from);
+    console.log("to: " + to);
     var values = regionMap(seriesData, from, to, function(rec) { return rec[1]; }),
         sum = values.reduce(function(previousValue, currentValue) {
             return previousValue+currentValue;
@@ -132,7 +134,7 @@ function truncate_empty_space(array) {
 }
 
 function write_tr(series, from, to, string) {
-    console.log("string: " + string);
+    console.log("writing tr for string: " + string);
     //console.log("counter1 absolute: " + counters.counter1.absolute);
     var tooltip_start = '';
     var tooltip_end = '';
@@ -142,12 +144,12 @@ function write_tr(series, from, to, string) {
     }
     var oTr=document.getElementById(string);
     var avg = parseFloat(getSeriesAverage(series, from, to));
-    var cons = parseFloat(getSeriesTotalConsumption(series, from, to) / 1000);
+    var cons = parseFloat(get_total(series, from, to) / 1000);
     var cost = cons * kWh_cost;
     oTr.innerHTML =
         "<td>" + tooltip_start + strings[(lang)][(string)] + tooltip_end + "</td>" +
         "<td align=\"right\">" + avg.toFixed(0) + " W</td>" +
-        "<td align=\"right\">" + cons.toFixed(1) + " kWh</td>" +
+        "<td align=\"right\">" + cons.toFixed(2) + " kWh</td>" +
         "<td align=\"right\">" + cost.toFixed(2) + " " + strings[(lang)][("currency")] + "</td>" +
         tooltip_end;
 }
@@ -399,10 +401,10 @@ function draw_consumption_graphs() {
             ts += (step);
         }
         console.log("getting total consumption for ds: " + ds_name);
-        counters[(ds_name)].absolute = getSeriesTotalConsumption(myCounters[(ds_name)], counters[(ds_name)].ref_ts, last_update) / 1000 + counters[(ds_name)].ref_val;
+        counters[(ds_name)].absolute = get_total(myCounters[(ds_name)], counters[(ds_name)].ref_ts, last_update) / 1000 + counters[(ds_name)].ref_val;
     }
     console.log("getting total consumption for total");
-    counters[("total")].absolute = getSeriesTotalConsumption(myCounters[("total")], counters[("total")].ref_ts, last_update) / 1000 + counters[("total")].ref_val;
+    counters[("total")].absolute = get_total(myCounters[("total")], counters[("total")].ref_ts, last_update) / 1000 + counters[("total")].ref_val;
 
     //myCounters[("total")] = truncate_empty_space(myCounters[("total")]);
 
@@ -415,7 +417,7 @@ function draw_consumption_graphs() {
 
             var xVal = new Date((this_month_start) * 1000);
 
-            var yVal = parseFloat(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000);
+            var yVal = parseFloat(get_total(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000);
             console.log("pushing " + yVal);
 
             total_cost.data.push([
@@ -423,7 +425,7 @@ function draw_consumption_graphs() {
                 (yVal.toFixed(2)),
             ]);
 
-            yVal = parseFloat((getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12));
+            yVal = parseFloat((get_total(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12));
 
             rel_cost.data.push([
                 (xVal.getMonth()),

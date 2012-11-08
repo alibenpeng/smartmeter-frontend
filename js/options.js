@@ -69,8 +69,8 @@ var cBarOpts = {
 var counters = {
     total: {
         label: strings[(lang)][("total")],
-        ref_val : 11852.19, // counter reading
-        ref_ts : 1352080142, // the time you took it
+        ref_val : 11880.33, // counter reading
+        ref_ts : 1352338830, // the time you took it
         color: "#dddddd",
         lines: {
             show: true,
@@ -83,24 +83,24 @@ var counters = {
     },
     counter1: {
         label: strings[(lang)][("counter1")],
-        ref_val : 595.12, // counter reading
-        ref_ts : 1352080142, // the time you took it
+        ref_val : 310.95, // counter reading
+        ref_ts : 1352338830, // the time you took it
         color: "#55ff55",
         bars : cBarOpts,
         data: []
     },
     counter2: {
         label: strings[(lang)][("counter2")],
-        ref_val : 306.21, // counter reading
-        ref_ts : 1352080142, // the time you took it
+        ref_val : 1433.39, // counter reading
+        ref_ts : 1352338830, // the time you took it
         color: "#eeee44",
         bars : cBarOpts,
         data: []
     },
     counter3: {
         label: strings[(lang)][("counter3")],
-        ref_val : 1417.69, // counter reading
-        ref_ts : 1352080142, // the time you took it
+        ref_val : 602.34, // counter reading
+        ref_ts : 1352338830, // the time you took it
         color: "#5555ff",
         bars : cBarOpts,
         data: []
@@ -108,7 +108,7 @@ var counters = {
     lost: {
         label: strings[(lang)][("lost")],
         ref_val : 0, // counter reading
-        ref_ts : 1352080142, // the time you took it
+        ref_ts : 1352338830, // the time you took it
         color: "#ff5555",
         bars : cBarOpts,
         data: []
