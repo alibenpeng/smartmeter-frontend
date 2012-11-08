@@ -85,7 +85,7 @@ var counters = {
         label: strings[(lang)][("counter1")],
         ref_val : 310.95, // counter reading
         ref_ts : 1352338830, // the time you took it
-        color: "#55ff55",
+        color: "#5555ff",
         bars : cBarOpts,
         data: []
     },
@@ -93,7 +93,7 @@ var counters = {
         label: strings[(lang)][("counter2")],
         ref_val : 1433.39, // counter reading
         ref_ts : 1352338830, // the time you took it
-        color: "#eeee44",
+        color: "#55ff55",
         bars : cBarOpts,
         data: []
     },
@@ -101,7 +101,7 @@ var counters = {
         label: strings[(lang)][("counter3")],
         ref_val : 602.34, // counter reading
         ref_ts : 1352338830, // the time you took it
-        color: "#5555ff",
+        color: "#eeee44",
         bars : cBarOpts,
         data: []
     },

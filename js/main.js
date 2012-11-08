@@ -144,7 +144,7 @@ function write_tr(series, from, to, string) {
     }
     var oTr=document.getElementById(string);
     var avg = parseFloat(getSeriesAverage(series, from, to));
-    var cons = parseFloat(get_total(series, from, to) / 1000);
+    var cons = parseFloat(getSeriesTotalConsumption(series, from, to) / 1000);
     var cost = cons * kWh_cost;
     oTr.innerHTML =
         "<td>" + tooltip_start + strings[(lang)][(string)] + tooltip_end + "</td>" +
@@ -401,10 +401,10 @@ function draw_consumption_graphs() {
             ts += (step);
         }
         console.log("getting total consumption for ds: " + ds_name);
-        counters[(ds_name)].absolute = get_total(myCounters[(ds_name)], counters[(ds_name)].ref_ts, last_update) / 1000 + counters[(ds_name)].ref_val;
+        counters[(ds_name)].absolute = getSeriesTotalConsumption(myCounters[(ds_name)], counters[(ds_name)].ref_ts, last_update) / 1000 + counters[(ds_name)].ref_val;
     }
     console.log("getting total consumption for total");
-    counters[("total")].absolute = get_total(myCounters[("total")], counters[("total")].ref_ts, last_update) / 1000 + counters[("total")].ref_val;
+    counters[("total")].absolute = getSeriesTotalConsumption(myCounters[("total")], counters[("total")].ref_ts, last_update) / 1000 + counters[("total")].ref_val;
 
     //myCounters[("total")] = truncate_empty_space(myCounters[("total")]);
 
