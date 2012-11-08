@@ -191,11 +191,11 @@ function draw_graph(container) {
         o = Flotr._.extend(Flotr._.clone(options), opts || {});
 
         o.mouse.trackFormatter = function (o) { return tooltipFormatter(o.x, o.y, o.series.label); };
-        if (!o.xaxis.min || !o.xaxis.max) {
-            o.xaxis.min = counters.total.data[0][0];
-            o.xaxis.max = counters.total.data[counters.total.data.length - 1][0];
+        if (o.xaxis.min && o.xaxis.max) {
+            update_table(o.xaxis.min, o.xaxis.max);
+        } else {
+            update_table(counters.total.data[0][0], counters.total.data[counters.total.data.length - 1][0]);
         }
-        update_table(o.xaxis.min, o.xaxis.max);
 
         // Return a new graph.
         return Flotr.draw(
