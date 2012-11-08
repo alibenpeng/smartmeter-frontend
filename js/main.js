@@ -167,6 +167,14 @@ function write_tr(series, from, to, string) {
 
 function update_table(min, max) {
     
+    var from = new Date(min * 1000);
+    var to = new Date(max * 1000);
+    var oTr=document.getElementById("timespan");
+    oTr.innerHTML =
+        "<th colspan=\"4\">" +
+        from.toLocaleDateString() + " " + from.toLocaleTimeString() + " - " +
+        to.toLocaleDateString() + " " + to.toLocaleTimeString() +
+        "</th>";
     write_tr(counters.counter1.data, min, max, "counter1");
     write_tr(counters.counter2.data, min, max, "counter2");
     write_tr(counters.counter3.data, min, max, "counter3");
@@ -183,6 +191,10 @@ function draw_graph(container) {
         o = Flotr._.extend(Flotr._.clone(options), opts || {});
 
         o.mouse.trackFormatter = function (o) { return tooltipFormatter(o.x, o.y, o.series.label); };
+        if (!o.xaxis.min || !o.xaxis.max) {
+            o.xaxis.min = counters.total.data[0][0];
+            o.xaxis.max = counters.total.data[counters.total.data.length - 1][0];
+        }
         update_table(o.xaxis.min, o.xaxis.max);
 
         // Return a new graph.

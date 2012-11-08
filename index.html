@@ -43,27 +43,13 @@
     <body>
         <div class="row" id="masterGraph"></div>
         <div class="row">
-            <div class="span6">
-
+            <div class="span8">
                 <table id="infotable" border=1>
-<!--
-                    <tr>
-                    </tr>
-
-                    <tr><td colspan="2">
-                        <select id="select_consumption_rra" onchange="draw_consumption_graphs()">
-                            <option value="9" selected/>Monthly consumption</option>
-                            <option value="6"/>Weekly consumption</option>
-                            <option value="3"/>Daily consumption (2 weeks)</option>
-                        </select>
-                    </td></tr>
--->
-
-                    <tr id="header">
-                    </tr>
+                    <tr id="header"></tr>
                     <tr id="last_day"></tr>
                     <tr id="last_week"></tr>
                     <tr id="last_month"></tr>
+                    <tr id="timespan"></tr>
                     <tr id="counter1"></tr>
                     <tr id="counter2"></tr>
                     <tr id="counter3"></tr>
@@ -72,10 +58,10 @@
                 </table>
             </div>
 
-            <div class="span7">
+            <div class="span6">
                 <div id="monthlyConsumptionGraph"></div>
             </div>
-            <div class="span7">
+            <div class="span6">
                 <div id="monthlyPlusMinusGraph"></div>
             </div>
         </div>
