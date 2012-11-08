@@ -65,12 +65,16 @@ function regionMap(seriesData, from, to, fn) {
 function getSeriesAverage(seriesData, from, to) {
     console.log("from: " + from);
     console.log("to: " + to);
+
+
     var values = regionMap(seriesData, from, to, function(rec) { return rec[1]; }),
         sum = values.reduce(function(previousValue, currentValue) {
             return previousValue+currentValue;
-        });
+        }, 0);
+
     return sum / values.length;
 }
+
 
 function getSeriesTotalConsumption(seriesData, from, to) {
     if (!from) {
@@ -142,6 +146,13 @@ function write_tr(series, from, to, string) {
         tooltip_start = "<div rel=\"tooltip\" title=\"" + strings[(lang)][("counter_reading")] + ":\n" + counters[(string)].absolute.toFixed(2) + " kWh\">",
         tooltip_end = "</div>";
     }
+/*
+    if (!to) {to = Infinity}
+    if (!from) {from = -Infinity}
+    to = to.toFixed(0);
+    from = from.toFixed(0);
+*/
+    console.log("write_tr(): from: " + from + ", to: " + to);
     var oTr=document.getElementById(string);
     var avg = parseFloat(getSeriesAverage(series, from, to));
     var cons = parseFloat(getSeriesTotalConsumption(series, from, to) / 1000);
@@ -417,7 +428,7 @@ function draw_consumption_graphs() {
 
             var xVal = new Date((this_month_start) * 1000);
 
-            var yVal = parseFloat(get_total(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000);
+            var yVal = parseFloat(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000);
             console.log("pushing " + yVal);
 
             total_cost.data.push([
@@ -425,7 +436,7 @@ function draw_consumption_graphs() {
                 (yVal.toFixed(2)),
             ]);
 
-            yVal = parseFloat((get_total(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12));
+            yVal = parseFloat((getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12));
 
             rel_cost.data.push([
                 (xVal.getMonth()),
