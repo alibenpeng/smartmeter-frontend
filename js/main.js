@@ -146,12 +146,6 @@ function write_tr(series, from, to, string) {
         tooltip_start = "<div rel=\"tooltip\" title=\"" + strings[(lang)][("counter_reading")] + ":\n" + counters[(string)].absolute.toFixed(2) + " kWh\">",
         tooltip_end = "</div>";
     }
-/*
-    if (!to) {to = Infinity}
-    if (!from) {from = -Infinity}
-    to = to.toFixed(0);
-    from = from.toFixed(0);
-*/
     console.log("write_tr(): from: " + from + ", to: " + to);
     var oTr=document.getElementById(string);
     var avg = parseFloat(getSeriesAverage(series, from, to));
@@ -172,8 +166,8 @@ function update_table(min, max) {
     var oTr=document.getElementById("timespan");
     oTr.innerHTML =
         "<th colspan=\"4\">" +
-        from.toLocaleDateString() + " " + from.toLocaleTimeString() + " - " +
-        to.toLocaleDateString() + " " + to.toLocaleTimeString() +
+        from.toLocaleDateString() + ", " + from.toLocaleTimeString() + " - " +
+        to.toLocaleDateString() + ", " + to.toLocaleTimeString() +
         "</th>";
     write_tr(counters.counter1.data, min, max, "counter1");
     write_tr(counters.counter2.data, min, max, "counter2");
@@ -429,7 +423,7 @@ function draw_consumption_graphs() {
     console.log("getting total consumption for total");
     counters[("total")].absolute = getSeriesTotalConsumption(myCounters[("total")], counters[("total")].ref_ts, last_update) / 1000 + counters[("total")].ref_val;
 
-    //myCounters[("total")] = truncate_empty_space(myCounters[("total")]);
+    myCounters[("total")] = truncate_empty_space(myCounters[("total")]);
 
     // calculate monthly consumption
     var next_month_start = get_next_month(myCounters[("total")][0][0]);

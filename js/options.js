@@ -6,7 +6,7 @@ var rrd_file = "/sm/data/smartmeter.rrd";
 var rrd_correction_factor = 60 * 60 / 2; // 2000 pulses per kWh, stored every minute but internally treated as pulses per second by rrd
 
 // localized strings
-var lang = "de";
+var lang = "en";
 var strings = {
     en : {
         last_day : "Last Day",
