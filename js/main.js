@@ -334,7 +334,7 @@ function draw_consumption_graphs() {
     //var rel_cost = { data: [] };
     var rraIdx = 6;
     var opts = {
-        title : strings[(lang)][("absolute_costs")],
+        title : strings[(lang)][("absolute_cost")],
         bars : {
             show : true,
             barWidth : 0.9,
@@ -462,7 +462,7 @@ function draw_consumption_graphs() {
     var monthly_payment = kWh_cost * kWh_paid / 12;
     opts.yaxis.max = monthly_payment;
     opts.yaxis.min = -monthly_payment;
-    opts.title = strings[(lang)][("relative_costs")];
+    opts.title = strings[(lang)][("relative_cost")];
 
     var monthlyPlusMinusGraph = document.getElementById("monthlyPlusMinusGraph");
     console.log("Drawing plus minus chart...");
@@ -521,6 +521,6 @@ oTh.innerHTML =
     '</td>' +
     '<th>' + strings[(lang)][("average")] + '</th>' +
     '<th>' + strings[(lang)][("consumption")] + '</th>' +
-    '<th>' + strings[(lang)][("costs")] + '</th>';
+    '<th>' + strings[(lang)][("cost")] + '</th>';
 
 // vim: expandtab sw=4 ts=4
