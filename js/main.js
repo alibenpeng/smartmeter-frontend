@@ -1,6 +1,21 @@
 
 // helper functions
 
+function keys(obj)
+{
+    var keys = [];
+
+    for(var key in obj)
+    {
+        if(obj.hasOwnProperty(key))
+        {
+            keys.push(key);
+        }
+    }
+
+    return keys;
+}
+
 function objDump(arr,level) {
     var dumped_text = "";
     if(!level) level = 0;
@@ -63,8 +78,8 @@ function regionMap(seriesData, from, to, fn) {
 }
 
 function getSeriesAverage(seriesData, from, to) {
-    console.log("from: " + from);
-    console.log("to: " + to);
+    //console.log("from: " + from);
+    //console.log("to: " + to);
 
 
     var values = regionMap(seriesData, from, to, function(rec) { return rec[1]; }),
@@ -88,9 +103,9 @@ function getSeriesTotalConsumption(seriesData, from, to) {
         to = from;
         from = tmp;
     }
-    console.log("avg data: from: " + from + ", to: " + to);
+    //console.log("avg data: from: " + from + ", to: " + to);
     var duration = to - from;
-    console.log("duration: " + duration);
+    //console.log("duration: " + duration);
     var avg = getSeriesAverage(seriesData, from, to);
 
     return avg * duration / 3600;
@@ -111,13 +126,13 @@ function get_total(seriesData, from, to) {
 function get_next_month(ts) {
     var d = new Date(ts * 1000);
     var next_month = d.getMonth() + 1;
-    console.log("date before conversion: " + d);
+    //console.log("date before conversion: " + d);
     d.setMonth(next_month);
     d.setDate(1);
     d.setHours(0);
     d.setMinutes(0);
     d.setSeconds(0);
-    console.log("date after conversion:  " + d);
+    //console.log("date after conversion:  " + d);
     return d.getTime() / 1000;
 }
 
@@ -129,7 +144,7 @@ function truncate_empty_space(array) {
             newArray.push(obj);
         } else {
             if (obj[1] > 0) {
-                console.log("first value found");
+                //console.log("first value found");
                 firstValueSeen = 1;
             }
         }
@@ -138,7 +153,7 @@ function truncate_empty_space(array) {
 }
 
 function write_tr(series, from, to, string) {
-    console.log("writing tr for string: " + string);
+    //console.log("writing tr for string: " + string);
     //console.log("counter1 absolute: " + counters.counter1.absolute);
     var tooltip_start = '';
     var tooltip_end = '';
@@ -146,7 +161,7 @@ function write_tr(series, from, to, string) {
         tooltip_start = "<div rel=\"tooltip\" title=\"" + strings[(lang)][("counter_reading")] + ":\n" + counters[(string)].absolute.toFixed(2) + " kWh\">",
         tooltip_end = "</div>";
     }
-    console.log("write_tr(): from: " + from + ", to: " + to);
+    //console.log("write_tr(): from: " + from + ", to: " + to);
     var oTr=document.getElementById(string);
     var avg = parseFloat(getSeriesAverage(series, from, to));
     var cons = parseFloat(getSeriesTotalConsumption(series, from, to) / 1000);
@@ -203,8 +218,8 @@ function draw_graph(container) {
 
     // flotr zoom handling
     Flotr.EventAdapter.observe(container, 'flotr:select', function(area){
-        console.log("zoom x: " + area.x1 + " - " + area.x2);
-        console.log("zoom y: " + area.y1 + " - " + area.y2);
+        //console.log("zoom x: " + area.x1 + " - " + area.x2);
+        //console.log("zoom y: " + area.y1 + " - " + area.y2);
         // Draw selected area
         graph = drawGraph({
             xaxis : {
@@ -243,7 +258,7 @@ function prepare_master_graph() {
     oSelRRA=document.getElementById("select_rra");
     rraIdx=oSelRRA.options[oSelRRA.selectedIndex].value;
     if (!rraIdx) rraIdx = 9;
-    console.log("Selected RRA: " + rraIdx);
+    //console.log("Selected RRA: " + rraIdx);
 
     counters.total.data = [];
 
@@ -263,11 +278,11 @@ function prepare_master_graph() {
         // set barWidth according to step size
         cBarOpts.barWidth = step - (step/5);
 
-        console.log("rra: " + rra);
-        console.log("rows: " + rows);
-        console.log("last_update: " + last_update);
-        console.log("step: " + step);
-        console.log("ds_name: " + ds_name);
+        //console.log("rra: " + rra);
+        //console.log("rows: " + rows);
+        //console.log("last_update: " + last_update);
+        //console.log("step: " + step);
+        //console.log("ds_name: " + ds_name);
 
         counters[(ds_name)].data = [];
 
@@ -316,7 +331,7 @@ function prepare_master_graph() {
 
     // draw the graph
     var masterGraph = document.getElementById("masterGraph");
-    console.log("Drawing master chart...");
+    //console.log("Drawing master chart...");
     draw_graph(masterGraph);
 
 }
@@ -329,45 +344,22 @@ function draw_consumption_graphs() {
         lost     : [],
         total    : [],
     };
-    var total_cost = { data: [], bars : { fillColor : { colors : [ '#00ff00', '#0000ff' ], start : 'top', end : 'bottom' } } };
-    var rel_cost = { data: [], bars : { fillColor : { colors : [ '#00ff00', '#0000ff' ], start : 'top', end : 'bottom' } } };
-    //var rel_cost = { data: [] };
+    var total_cost = { data: [] };
+    var rel_cost = { data: [] };
     var rraIdx = 6;
     var opts = {
         title : strings[(lang)][("absolute_cost")],
         bars : {
             show : true,
-            barWidth : 0.9,
         },
-/*
-        bars : cBarOpts,
-*/
         yaxis : {
             tickFormatter : function(val, axisOpts) { return val + " " + strings[(lang)][("currency")] },
             min : 0,
+            max : 100,
         },
         xaxis : {
-
-// this does not work for some reason, hence the array below
-/*
                 mode : 'time',
                 timeMode : 'local',
-                timeUnit : 'month',
-*/
-            ticks : [
-                [0, 'Jan'],
-                [1, 'Feb'],
-                [2, 'Mar'],
-                [3, 'Apr'],
-                [4, 'May'],
-                [5, 'Jun'],
-                [6, 'Jul'],
-                [7, 'Aug'],
-                [8, 'Sep'],
-                [9, 'Oct'],
-                [10, 'Nov'],
-                [11, 'Dec'],
-            ],
         },
         grid : {
             verticalLines : false,
@@ -376,13 +368,15 @@ function draw_consumption_graphs() {
         mouse : cMouseOpts,
     };
 
-    opts.mouse.trackFormatter = function(fnord) {return fnord.y + " " + strings[(lang)][("currency")] },
+    opts.mouse.trackFormatter = function(fnord) {return fnord.y + " " + strings[(lang)][("currency")] };
     opts.xaxis.tickDecimals = 0;
-    //opts.bars.barWidth = 0.9;
-    //opts.bars.centered = true;
+    opts.xaxis.mode = 'time';
+    opts.xaxis.timeMode = 'local';
+    opts.bars.fillColor = { colors : [ '#FF0000', '#00FF00' ], start : 'top', end : 'bottom' };
+    opts.bars.barWidth = 1.5e+9;
+    opts.bars.centered = true;
     opts.bars.lineWidth = 0;
     opts.bars.fillOpacity = 0.8;
-    opts.bars.fillColor = { colors : [ '#FF0000', '#00FF00' ] };
     
 
     // get_next_month needs to become get_next_day_week_month_year for this to work
@@ -417,10 +411,10 @@ function draw_consumption_graphs() {
             }
             ts += (step);
         }
-        console.log("getting total consumption for ds: " + ds_name);
+        //console.log("getting total consumption for ds: " + ds_name);
         counters[(ds_name)].absolute = getSeriesTotalConsumption(myCounters[(ds_name)], counters[(ds_name)].ref_ts, last_update) / 1000 + counters[(ds_name)].ref_val;
     }
-    console.log("getting total consumption for total");
+    //console.log("getting total consumption for total");
     counters[("total")].absolute = getSeriesTotalConsumption(myCounters[("total")], counters[("total")].ref_ts, last_update) / 1000 + counters[("total")].ref_val;
 
     myCounters[("total")] = truncate_empty_space(myCounters[("total")]);
@@ -435,19 +429,23 @@ function draw_consumption_graphs() {
             var xVal = new Date((this_month_start) * 1000);
 
             var yVal = parseFloat(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000);
-            console.log("pushing " + yVal);
+            console.log("pushing x: " + xVal.getTime() + ", y: " + yVal.toFixed(2) + ", idx: " + idx);
 
-            total_cost.data.push([
-                (xVal.getMonth()),
-                (yVal.toFixed(2)),
-            ]);
+            if ((xVal.getSeconds() == 0) && (xVal.getMinutes() == 0) && (xVal.getHours() == 0) && (xVal.getDate() == 1)){
+                total_cost.data.push([
+                    (xVal.getTime()),
+                    (yVal.toFixed(2)),
+                ]);
+            }
 
             yVal = parseFloat((getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12));
 
-            rel_cost.data.push([
-                (xVal.getMonth()),
-                (yVal.toFixed(2)),
-            ]);
+            if ((xVal.getSeconds() == 0) && (xVal.getMinutes() == 0) && (xVal.getHours() == 0) && (xVal.getDate() == 1)){
+                rel_cost.data.push([
+                    (xVal.getTime()),
+                    (yVal.toFixed(2)),
+                ]);
+            }
             this_month_start = next_month_start;
             next_month_start = get_next_month(next_month_start);
         }
@@ -455,8 +453,11 @@ function draw_consumption_graphs() {
 
     // draw the absolute cost graph
     var monthlyConsumptionGraph = document.getElementById("monthlyConsumptionGraph");
-    console.log("Drawing consumption chart...");
-    var total_cost_graph = Flotr.draw(monthlyConsumptionGraph, total_cost, opts);
+    //console.log("Drawing consumption chart...");
+
+    console.log(objDump(opts, 4));
+    console.log(objDump(total_cost, 4));
+    var total_cost_graph = Flotr.draw(monthlyConsumptionGraph, [ total_cost.data ], opts);
 
     // draw the relaive cost graph
     var monthly_payment = kWh_cost * kWh_paid / 12;
@@ -465,8 +466,8 @@ function draw_consumption_graphs() {
     opts.title = strings[(lang)][("relative_cost")];
 
     var monthlyPlusMinusGraph = document.getElementById("monthlyPlusMinusGraph");
-    console.log("Drawing plus minus chart...");
-    var total_cost_graph = Flotr.draw(monthlyPlusMinusGraph, rel_cost, opts);
+    //console.log("Drawing plus minus chart...");
+    var total_cost_graph = Flotr.draw(monthlyPlusMinusGraph, [ rel_cost.data ], opts);
 
     // update table
     write_tr(myCounters[("total")], last_update - (3600 * 24), last_update, "last_day");
@@ -482,7 +483,7 @@ function draw_consumption_graphs() {
 // verifies that it is a valid RRD archive
 // and 
 function update_fname_handler(bf) {
-    console.log("update_fname_handler running with file name: " + rrd_file);
+    //console.log("update_fname_handler running with file name: " + rrd_file);
     var i_rrd_data=undefined;
     try {
         i_rrd_data=new RRDFile(bf);            

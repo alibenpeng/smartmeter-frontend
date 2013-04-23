@@ -123,7 +123,7 @@ var cXaxisOpts = {
     mode : 'time', 
     timeMode : 'local',
     timeUnit : 'second',
-    labelsAngle : 0,
+    labelsAngle : 45,
     noTicks : 10,
     tickDecimals : 0,
 };
