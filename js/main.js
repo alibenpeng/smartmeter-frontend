@@ -344,8 +344,8 @@ function draw_consumption_graphs() {
         lost     : [],
         total    : [],
     };
-    var total_cost = { data: [] };
-    var rel_cost = { data: [] };
+    var total_cost = { data: [], yaxis : { min : 1e+10, max : 0 }};
+    var rel_cost = { data: [], yaxis : { min : 1e+10, max : 0 } };
     var rraIdx = 6;
     var opts = {
         title : strings[(lang)][("absolute_cost")],
@@ -354,8 +354,8 @@ function draw_consumption_graphs() {
         },
         yaxis : {
             tickFormatter : function(val, axisOpts) { return val + " " + strings[(lang)][("currency")] },
-            min : 0,
-            max : 100,
+            tickDecimals : 0,
+            minorTicks : 0,
         },
         xaxis : {
                 mode : 'time',
@@ -429,9 +429,17 @@ function draw_consumption_graphs() {
             var xVal = new Date((this_month_start) * 1000);
 
             var yVal = parseFloat(getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000);
-            console.log("pushing x: " + xVal.getTime() + ", y: " + yVal.toFixed(2) + ", idx: " + idx);
 
             if ((xVal.getSeconds() == 0) && (xVal.getMinutes() == 0) && (xVal.getHours() == 0) && (xVal.getDate() == 1)){
+                if ((yVal -5) < total_cost.yaxis.min) {
+                    total_cost.yaxis.min = yVal -5;
+                }
+
+                if ((yVal +5) > total_cost.yaxis.max) {
+                    total_cost.yaxis.max = yVal +5;
+                }
+
+                console.log("pushing x: " + xVal.getTime() + ", y: " + yVal.toFixed(2) + ", idx: " + idx);
                 total_cost.data.push([
                     (xVal.getTime()),
                     (yVal.toFixed(2)),
@@ -441,6 +449,14 @@ function draw_consumption_graphs() {
             yVal = parseFloat((getSeriesTotalConsumption(myCounters[("total")], this_month_start, next_month_start) * kWh_cost / 1000) - (kWh_paid * kWh_cost / 12));
 
             if ((xVal.getSeconds() == 0) && (xVal.getMinutes() == 0) && (xVal.getHours() == 0) && (xVal.getDate() == 1)){
+                if ((yVal -5) < rel_cost.yaxis.min) {
+                    rel_cost.yaxis.min = yVal -5;
+                }
+
+                if ((yVal +5) > rel_cost.yaxis.max) {
+                    rel_cost.yaxis.max = yVal +5;
+                }
+
                 rel_cost.data.push([
                     (xVal.getTime()),
                     (yVal.toFixed(2)),
@@ -454,20 +470,27 @@ function draw_consumption_graphs() {
     // draw the absolute cost graph
     var monthlyConsumptionGraph = document.getElementById("monthlyConsumptionGraph");
     //console.log("Drawing consumption chart...");
+    opts.yaxis.max = total_cost.yaxis.max;
+    opts.yaxis.min = total_cost.yaxis.min;
 
     console.log(objDump(opts, 4));
     console.log(objDump(total_cost, 4));
-    var total_cost_graph = Flotr.draw(monthlyConsumptionGraph, [ total_cost.data ], opts);
+    var total_cost_graph = Flotr.draw(monthlyConsumptionGraph, total_cost, opts);
 
     // draw the relaive cost graph
     var monthly_payment = kWh_cost * kWh_paid / 12;
-    opts.yaxis.max = monthly_payment;
-    opts.yaxis.min = -monthly_payment;
+    opts.yaxis.max = -rel_cost.yaxis.min;
+    opts.yaxis.min = rel_cost.yaxis.min;
+    //opts.bars.fillColor = { colors : [ '#ff0000', '#00FF00' ], start : 'top', end : 'bottom' };
+    //opts.yaxis.max = monthly_payment;
+    //opts.yaxis.min = -monthly_payment;
     opts.title = strings[(lang)][("relative_cost")];
 
     var monthlyPlusMinusGraph = document.getElementById("monthlyPlusMinusGraph");
     //console.log("Drawing plus minus chart...");
-    var total_cost_graph = Flotr.draw(monthlyPlusMinusGraph, [ rel_cost.data ], opts);
+    console.log(objDump(opts, 4));
+    console.log(objDump(total_cost, 4));
+    var total_cost_graph = Flotr.draw(monthlyPlusMinusGraph, rel_cost, opts);
 
     // update table
     write_tr(myCounters[("total")], last_update - (3600 * 24), last_update, "last_day");
